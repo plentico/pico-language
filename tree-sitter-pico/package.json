@@ -1,0 +1,40 @@
+{
+  "name": "tree-sitter-pico",
+  "version": "0.1.0",
+  "description": "Tree-sitter grammar for Pico templates",
+  "main": "bindings/node",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plentico/pico-language"
+  },
+  "keywords": [
+    "parser",
+    "tree-sitter",
+    "pico",
+    "template"
+  ],
+  "author": "plentico",
+  "license": "MIT",
+  "dependencies": {
+    "nan": "^2.17.0"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "^0.20.8"
+  },
+  "scripts": {
+    "build": "tree-sitter generate",
+    "test": "tree-sitter test",
+    "parse": "tree-sitter parse"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.pico",
+      "injection-regex": "pico",
+      "file-types": [
+        "pico",
+        "pico.html"
+      ],
+      "highlights": "queries/highlights.scm"
+    }
+  ]
+}

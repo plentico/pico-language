@@ -1,0 +1,38 @@
+{
+  "name": "pico-language",
+  "displayName": "Pico Language Support",
+  "description": "Syntax highlighting for Pico template files",
+  "version": "0.1.0",
+  "publisher": "plentico",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plentico/pico-language"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "pico",
+        "aliases": ["Pico", "pico"],
+        "extensions": [".pico", ".pico.html"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "pico",
+        "scopeName": "source.pico",
+        "path": "./syntaxes/pico.tmLanguage.json",
+        "embeddedLanguages": {
+          "source.css": "css",
+          "source.js": "javascript"
+        }
+      }
+    ]
+  }
+}

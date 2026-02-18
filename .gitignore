@@ -1,0 +1,5 @@
+node_modules/
+*.vsix
+tree-sitter-pico/src/
+tree-sitter-pico/build/
+.DS_Store

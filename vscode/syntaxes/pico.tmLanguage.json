@@ -1,0 +1,300 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Pico",
+  "scopeName": "source.pico",
+  "patterns": [
+    { "include": "#frontmatter" },
+    { "include": "#control-flow" },
+    { "include": "#expression" },
+    { "include": "#component-tag" },
+    { "include": "#dynamic-component" },
+    { "include": "#style-tag" },
+    { "include": "#script-tag" },
+    { "include": "#html" }
+  ],
+  "repository": {
+    "frontmatter": {
+      "name": "meta.frontmatter.pico",
+      "begin": "^---\\s*$",
+      "end": "^---\\s*$",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.frontmatter.begin.pico" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.frontmatter.end.pico" }
+      },
+      "patterns": [
+        { "include": "#frontmatter-import" },
+        { "include": "#frontmatter-prop" },
+        { "include": "#frontmatter-let" },
+        { "include": "#js-expression" }
+      ]
+    },
+    "frontmatter-import": {
+      "name": "meta.import.pico",
+      "match": "^\\s*(import)\\s+([A-Z][A-Za-z0-9_]*)\\s+(from)\\s+([\"'])([^\"']+)\\4\\s*;?",
+      "captures": {
+        "1": { "name": "keyword.control.import.pico" },
+        "2": { "name": "entity.name.type.component.pico" },
+        "3": { "name": "keyword.control.from.pico" },
+        "4": { "name": "punctuation.definition.string.begin.pico" },
+        "5": { "name": "string.quoted.pico" }
+      }
+    },
+    "frontmatter-prop": {
+      "name": "meta.prop.pico",
+      "match": "^\\s*(prop)\\s+([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*=\\s*(.+))?\\s*;",
+      "captures": {
+        "1": { "name": "keyword.declaration.prop.pico" },
+        "2": { "name": "variable.parameter.prop.pico" },
+        "3": { "name": "source.js", "patterns": [{ "include": "#js-expression" }] }
+      }
+    },
+    "frontmatter-let": {
+      "name": "meta.let.pico",
+      "match": "^\\s*(let|const)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+)\\s*;?",
+      "captures": {
+        "1": { "name": "keyword.declaration.variable.pico" },
+        "2": { "name": "variable.other.pico" },
+        "3": { "name": "source.js", "patterns": [{ "include": "#js-expression" }] }
+      }
+    },
+    "control-flow": {
+      "patterns": [
+        { "include": "#control-if" },
+        { "include": "#control-else-if" },
+        { "include": "#control-else" },
+        { "include": "#control-endif" },
+        { "include": "#control-for" },
+        { "include": "#control-endfor" }
+      ]
+    },
+    "control-if": {
+      "name": "meta.control.if.pico",
+      "match": "\\{(if)\\s+(.+?)\\}",
+      "captures": {
+        "1": { "name": "keyword.control.if.pico" },
+        "2": { "name": "source.js", "patterns": [{ "include": "#js-expression" }] }
+      }
+    },
+    "control-else-if": {
+      "name": "meta.control.elseif.pico",
+      "match": "\\{(else\\s+if)\\s+(.+?)\\}",
+      "captures": {
+        "1": { "name": "keyword.control.elseif.pico" },
+        "2": { "name": "source.js", "patterns": [{ "include": "#js-expression" }] }
+      }
+    },
+    "control-else": {
+      "name": "meta.control.else.pico",
+      "match": "\\{(else)\\}",
+      "captures": {
+        "1": { "name": "keyword.control.else.pico" }
+      }
+    },
+    "control-endif": {
+      "name": "meta.control.endif.pico",
+      "match": "\\{(/if)\\}",
+      "captures": {
+        "1": { "name": "keyword.control.endif.pico" }
+      }
+    },
+    "control-for": {
+      "name": "meta.control.for.pico",
+      "match": "\\{(for)\\s+(let\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s+(of)\\s+(.+?)\\}",
+      "captures": {
+        "1": { "name": "keyword.control.for.pico" },
+        "2": { "name": "keyword.declaration.variable.pico" },
+        "3": { "name": "variable.other.loop.pico" },
+        "4": { "name": "keyword.control.of.pico" },
+        "5": { "name": "source.js", "patterns": [{ "include": "#js-expression" }] }
+      }
+    },
+    "control-endfor": {
+      "name": "meta.control.endfor.pico",
+      "match": "\\{(/for)\\}",
+      "captures": {
+        "1": { "name": "keyword.control.endfor.pico" }
+      }
+    },
+    "expression": {
+      "name": "meta.expression.pico",
+      "begin": "\\{(?!/|if|else|for)",
+      "end": "\\}",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.expression.begin.pico" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.expression.end.pico" }
+      },
+      "patterns": [
+        { "include": "#js-expression" }
+      ]
+    },
+    "component-tag": {
+      "name": "meta.tag.component.pico",
+      "begin": "(<)([A-Z][A-Za-z0-9_]*)",
+      "end": "(/?>)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.pico" },
+        "2": { "name": "entity.name.tag.component.pico" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.tag.end.pico" }
+      },
+      "patterns": [
+        { "include": "#tag-attribute" }
+      ]
+    },
+    "dynamic-component": {
+      "name": "meta.tag.dynamic-component.pico",
+      "begin": "(<)(=)([\"']?)([^\"'>]+)\\3",
+      "end": "(/?>)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.pico" },
+        "2": { "name": "keyword.operator.dynamic.pico" },
+        "3": { "name": "punctuation.definition.string.pico" },
+        "4": { "name": "string.quoted.path.pico" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.tag.end.pico" }
+      },
+      "patterns": [
+        { "include": "#tag-attribute" }
+      ]
+    },
+    "tag-attribute": {
+      "patterns": [
+        {
+          "name": "meta.attribute.shorthand.pico",
+          "match": "\\{([a-zA-Z_][a-zA-Z0-9_]*)\\}",
+          "captures": {
+            "1": { "name": "variable.other.attribute.pico" }
+          }
+        },
+        {
+          "name": "meta.attribute.expression.pico",
+          "begin": "([a-zA-Z_][a-zA-Z0-9_:-]*)\\s*=\\s*\\{",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": { "name": "entity.other.attribute-name.pico" }
+          },
+          "patterns": [
+            { "include": "#js-expression" }
+          ]
+        },
+        {
+          "name": "meta.attribute.string.pico",
+          "match": "([a-zA-Z_][a-zA-Z0-9_:-]*)\\s*=\\s*([\"'])([^\"']*)\\2",
+          "captures": {
+            "1": { "name": "entity.other.attribute-name.pico" },
+            "2": { "name": "punctuation.definition.string.pico" },
+            "3": { "name": "string.quoted.attribute.pico" }
+          }
+        },
+        {
+          "name": "meta.attribute.boolean.pico",
+          "match": "([a-zA-Z_][a-zA-Z0-9_:-]*)(?=\\s|/?>)",
+          "captures": {
+            "1": { "name": "entity.other.attribute-name.pico" }
+          }
+        }
+      ]
+    },
+    "style-tag": {
+      "name": "meta.embedded.block.css",
+      "begin": "(<)(style)(>)",
+      "end": "(</)(style)(>)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.html" },
+        "2": { "name": "entity.name.tag.style.html" },
+        "3": { "name": "punctuation.definition.tag.end.html" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.html" },
+        "2": { "name": "entity.name.tag.style.html" },
+        "3": { "name": "punctuation.definition.tag.end.html" }
+      },
+      "patterns": [
+        { "include": "source.css" }
+      ]
+    },
+    "script-tag": {
+      "name": "meta.embedded.block.javascript",
+      "begin": "(<)(script)(>)",
+      "end": "(</)(script)(>)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.html" },
+        "2": { "name": "entity.name.tag.script.html" },
+        "3": { "name": "punctuation.definition.tag.end.html" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.html" },
+        "2": { "name": "entity.name.tag.script.html" },
+        "3": { "name": "punctuation.definition.tag.end.html" }
+      },
+      "patterns": [
+        { "include": "source.js" }
+      ]
+    },
+    "html": {
+      "patterns": [
+        { "include": "text.html.basic" }
+      ]
+    },
+    "js-expression": {
+      "patterns": [
+        {
+          "name": "constant.numeric.pico",
+          "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b"
+        },
+        {
+          "name": "string.quoted.single.pico",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            { "name": "constant.character.escape.pico", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.quoted.double.pico",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.pico", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.template.pico",
+          "begin": "`",
+          "end": "`",
+          "patterns": [
+            { "name": "constant.character.escape.pico", "match": "\\\\." },
+            {
+              "name": "meta.template.expression.pico",
+              "begin": "\\$\\{",
+              "end": "\\}",
+              "patterns": [{ "include": "#js-expression" }]
+            }
+          ]
+        },
+        {
+          "name": "constant.language.boolean.pico",
+          "match": "\\b(true|false)\\b"
+        },
+        {
+          "name": "constant.language.null.pico",
+          "match": "\\b(null|undefined)\\b"
+        },
+        {
+          "name": "keyword.operator.pico",
+          "match": "===|!==|==|!=|<=|>=|&&|\\|\\||\\+|-|\\*|/|%|<|>|!|\\?|:"
+        },
+        {
+          "name": "variable.other.pico",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}
