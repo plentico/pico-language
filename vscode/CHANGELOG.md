@@ -2,6 +2,20 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.7] - 2026-02-18
+
+### Added
+- **Custom Pico icon for Material Icon Theme** - auto-configures with relative path to your custom `pico.svg`
+- Material Icon Theme users now see your custom Pico icon instead of generic HTML icon
+
+### Changed
+- Improved icon configuration to use extension-relative paths
+
+## [0.0.6] - 2026-02-18
+
+### Changed
+- Add native file icon support so .pico and .pico.html files show the Plenti icon when using VS Code's default icon theme (Seti)
+
 ## [0.0.5] - 2026-02-18
 
 ### Added

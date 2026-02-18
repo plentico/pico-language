@@ -2,7 +2,7 @@
   "name": "pico-language",
   "displayName": "Pico Templates by Plentico",
   "description": "Syntax highlighting for Pico template files - a component-based templating system",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "plentico",
   "license": "MIT",
   "icon": "icon.png",
@@ -89,6 +89,7 @@
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "@types/vscode": "^1.75.0",
     "typescript": "^5.0.0"
   }

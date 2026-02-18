@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+
+let extensionPath = '';
 
 export function activate(context: vscode.ExtensionContext) {
+    extensionPath = context.extensionPath;
+    
     // Check if we should configure file icons
     const config = vscode.workspace.getConfiguration('pico');
     const autoConfigIcons = config.get('autoConfigureFileIcons', true);
@@ -26,10 +31,25 @@ async function configureFileIcons() {
             
             // Only add if not already configured
             if (!currentAssociations['*.pico']) {
-                const newAssociations = { ...currentAssociations, '*.pico': 'html' };
+                // Calculate relative path from Material Icons dist folder to our icons
+                // Material Icons loads from: ~/.vscode/extensions/PKief.material-icon-theme-x.x.x/dist/
+                // Our icon is at: ~/.vscode/extensions/plentico.pico-language-x.x.x/icons/pico.svg
+                const materialPath = materialIconTheme.extensionPath;
+                const ourIconPath = path.join(extensionPath, 'icons', 'pico');
+                
+                // Compute relative path from Material Icons dist folder to our icon
+                const relativePath = path.relative(
+                    path.join(materialPath, 'dist'),
+                    ourIconPath
+                ).replace(/\\/g, '/'); // Use forward slashes for cross-platform
+                
+                const newAssociations = { 
+                    ...currentAssociations, 
+                    '*.pico': relativePath  // e.g., "../../plentico.pico-language-0.0.5/icons/pico"
+                };
                 
                 await config.update('files.associations', newAssociations, vscode.ConfigurationTarget.Global);
-                vscode.window.showInformationMessage('Pico: Configured Material Icon Theme for .pico files. Reload window to apply.');
+                vscode.window.showInformationMessage('Pico: Configured Material Icon Theme with custom Pico icon. Restart VS Code to apply.');
             }
         } catch (err) {
             console.error('Pico: Failed to configure Material Icon Theme', err);

@@ -24,9 +24,32 @@ Type these prefixes and press Tab to expand:
 
 ## File Icons
 
-The extension provides a custom icon for `.pico` files that works with **all VS Code icon themes** including Seti, Minimal, Material Icon Theme, and vscode-icons.
+The extension provides a custom Pico icon for `.pico` files:
 
-No configuration needed - the icon appears automatically after installing the extension.
+| Icon Theme | How it works |
+|------------|--------------|
+| **Seti** (default) | Native icon - works automatically |
+| **Minimal** | No icons (by design) |
+| **Material Icon Theme** | Auto-configured on first `.pico` file open (need to close and reopen VS Code) |
+| **vscode-icons** | Auto-configured on first `.pico` file open (need to close and reopen VS Code) |
+
+### Disable Auto-Configuration
+
+To prevent the extension from adding Material Icon Theme or vscode-icons settings:
+
+```json
+// settings.json
+"pico.autoConfigureFileIcons": false
+```
+
+### Manual Configuration (if needed)
+
+**Material Icon Theme:**
+```json
+"material-icon-theme.files.associations": {
+    "*.pico": "html"
+}
+```
 
 ## Features
 
