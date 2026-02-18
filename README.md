@@ -37,41 +37,77 @@ The extension recognizes:
 
 ## Neovim
 
-### With nvim-treesitter (Recommended)
+### Installation
 
-1. Build the tree-sitter parser:
-
-```bash
-cd tree-sitter-pico
-npm install
-npm run build
-```
-
-2. Add to your Neovim config:
-
+**With lazy.nvim:**
 ```lua
--- In your init.lua or plugins config
-require('pico-language.nvim.pico').setup()
-
--- Or with lazy.nvim
 {
-  dir = '/path/to/pico-language',
+  'plentico/pico-language',
   config = function()
     require('nvim.pico').setup()
   end,
 }
 ```
 
-3. Copy query files:
+**With vim-plug:**
+```vim
+Plug 'plentico/pico-language'
+```
+```lua
+-- Add to your init.lua after plugins are loaded:
+require('nvim.pico').setup()
+```
 
+**With packer:**
+```lua
+use {
+  'plentico/pico-language',
+  config = function()
+    require('nvim.pico').setup()
+  end,
+}
+```
+
+### File Icons (nvim-web-devicons)
+
+If you use [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons), add custom Pico file icons:
+
+```lua
+require('nvim-web-devicons').setup({
+  override_by_extension = {
+    ['pico'] = {
+      icon = '󰗀',  -- Nerd Font: nf-md-file_code (use any icon you prefer)
+      color = '#22a6ed',
+      name = 'Pico',
+    },
+  },
+})
+```
+
+This works automatically with nvim-tree, lualine, bufferline, and other plugins that use nvim-web-devicons.
+
+**Note:** You need to declare `require('nvim-web-devicons').setup({...})` _before_ other setups that may call nvim-web-devicons (for example before `require('nvim-tree').setup({...})` is called). You may need to close and reopen nvim as well.
+
+### Tree-sitter (Optional)
+
+For enhanced syntax highlighting with tree-sitter:
+
+1. Build the tree-sitter parser:
+```bash
+cd tree-sitter-pico
+npm install
+npm run build
+```
+
+2. Copy query files:
 ```bash
 mkdir -p ~/.config/nvim/queries/pico
 cp tree-sitter-pico/queries/*.scm ~/.config/nvim/queries/pico/
 ```
 
-### Without Tree-sitter (Fallback)
+### Fallback Vim Syntax
 
-The Neovim config includes a vim syntax fallback:
+The plugin includes vim syntax highlighting as fallback (used automatically if tree-sitter is not available):
 
 ```lua
 require('nvim.pico').setup({ force_vim_syntax = true })
