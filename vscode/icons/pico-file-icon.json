@@ -1,0 +1,16 @@
+{
+  "iconDefinitions": {
+    "pico": {
+      "iconPath": "./pico.svg"
+    }
+  },
+  "file": "pico",
+  "fileExtensions": {
+    "pico": "pico",
+    "pico.html": "pico"
+  },
+  "fileNames": {},
+  "languageIds": {
+    "pico": "pico"
+  }
+}

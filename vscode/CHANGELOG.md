@@ -2,6 +2,13 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.4] - 2026-02-18
+
+### Fixed
+- Snippets no longer add extra `}` when using `{if}` or `{for}` completions
+- Removed auto-closing `{` → `}` since Pico control blocks have their own closing syntax
+- Adds file extension icon support
+
 ## [0.0.3] - 2026-02-17
 
 ### Added

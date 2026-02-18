@@ -2,7 +2,7 @@
   "name": "pico-language",
   "displayName": "Pico Templates by Plentico",
   "description": "Syntax highlighting for Pico template files - a component-based templating system",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "plentico",
   "license": "MIT",
   "icon": "icon.png",
@@ -56,6 +56,13 @@
       {
         "language": "pico",
         "path": "./snippets/pico.json"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "pico-icons",
+        "label": "Pico File Icons",
+        "path": "./icons/pico-file-icon.json"
       }
     ]
   }
