@@ -1,26 +1,26 @@
 {
   "If Block": {
-    "prefix": ["if", "{if"],
+    "prefix": ["{if"],
     "body": [
       "{if ${1:condition}}",
       "\t$0",
-      "{/if}"
+      "{/if"
     ],
     "description": "Pico if block"
   },
   "If-Else Block": {
-    "prefix": ["ife", "{if else", "ifelse"],
+    "prefix": ["{ife", "{ifelse"],
     "body": [
       "{if ${1:condition}}",
       "\t$2",
       "{else}",
       "\t$0",
-      "{/if}"
+      "{/if"
     ],
     "description": "Pico if-else block"
   },
   "If-Else If-Else Block": {
-    "prefix": ["ifeif", "{if elseif"],
+    "prefix": ["{ifeif"],
     "body": [
       "{if ${1:condition}}",
       "\t$2",
@@ -28,28 +28,28 @@
       "\t$4",
       "{else}",
       "\t$0",
-      "{/if}"
+      "{/if"
     ],
     "description": "Pico if-else if-else block"
   },
   "For Loop": {
-    "prefix": ["for", "{for"],
+    "prefix": ["{for"],
     "body": [
       "{for let ${1:item} of ${2:items}}",
       "\t$0",
-      "{/for}"
+      "{/for"
     ],
     "description": "Pico for loop"
   },
   "Expression": {
-    "prefix": ["expr", "{"],
+    "prefix": ["{expr", "{e"],
     "body": [
-      "{${1:expression}}"
+      "{${1:expression}"
     ],
     "description": "Pico expression"
   },
   "Frontmatter": {
-    "prefix": ["---", "frontmatter", "fence"],
+    "prefix": ["---", "fence"],
     "body": [
       "---",
       "import ${1:Component} from \"./${2:component}.html\";",
@@ -63,7 +63,7 @@
     "description": "Pico frontmatter block"
   },
   "Import": {
-    "prefix": ["import", "imp"],
+    "prefix": ["import"],
     "body": [
       "import ${1:Component} from \"./${2:component}.html\";"
     ],
@@ -77,14 +77,14 @@
     "description": "Pico prop declaration"
   },
   "Component Self-Closing": {
-    "prefix": ["comp", "<C"],
+    "prefix": ["<Comp", "<C"],
     "body": [
       "<${1:Component} ${2:prop}={${3:value}} />"
     ],
     "description": "Pico self-closing component"
   },
   "Component with Children": {
-    "prefix": ["compch", "<Cc"],
+    "prefix": ["<Compch"],
     "body": [
       "<${1:Component} ${2:prop}={${3:value}}>",
       "\t$0",
@@ -93,14 +93,14 @@
     "description": "Pico component with children"
   },
   "Dynamic Component": {
-    "prefix": ["dyn", "<=\""],
+    "prefix": ["<=\"", "<="],
     "body": [
       "<=\"${1:./component.html}\" ${2:prop}={${3:value}} />"
     ],
     "description": "Pico dynamic component"
   },
   "Style Block": {
-    "prefix": ["style", "<style"],
+    "prefix": ["<style"],
     "body": [
       "<style>",
       "\t$0",
@@ -109,7 +109,7 @@
     "description": "Pico style block"
   },
   "Script Block": {
-    "prefix": ["script", "<script"],
+    "prefix": ["<script"],
     "body": [
       "<script>",
       "\t$0",

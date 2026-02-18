@@ -2,6 +2,40 @@
 
 Syntax highlighting for [Pico](https://github.com/plentico/pico) template files.
 
+## Snippets
+
+Type these prefixes and press Tab to expand:
+
+| Prefix | Expands to |
+|--------|------------|
+| `{if` | `{if condition}...{/if}` |
+| `{ife` | `{if}...{else}...{/if}` |
+| `{ifeif` | `{if}...{else if}...{else}...{/if}` |
+| `{for` | `{for let item of items}...{/for}` |
+| `{expr` | `{expression}` |
+| `<Comp` | `<Component prop={value} />` |
+| `<Compch` | `<Component>...</Component>` |
+| `<=` | `<="./path" />` (dynamic component) |
+| `<style` | `<style>...</style>` |
+| `<script` | `<script>...</script>` |
+| `prop` | `prop name = default;` |
+| `import` | `import Component from "./file";` |
+| `---` | Full frontmatter block |
+
+## File Icons
+
+The extension automatically configures file icons for `.pico` files if you have Material Icon Theme or vscode-icons installed.
+
+**To disable auto-configuration:**
+```json
+// settings.json
+"pico.autoConfigureFileIcons": false
+```
+
+**To manually trigger:**
+- Open Command Palette (`Ctrl+Shift+P`)
+- Run "Pico: Configure File Icons"
+
 ## Features
 
 - **Frontmatter** (`---`) with imports, props, and let declarations

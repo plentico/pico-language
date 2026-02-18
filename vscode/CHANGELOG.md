@@ -2,11 +2,20 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.5] - 2026-02-18
+
+### Added
+- **Auto file icon configuration** for Material Icon Theme and vscode-icons
+- Setting `pico.autoConfigureFileIcons` to enable/disable auto-config (default: true)
+- Command "Pico: Configure File Icons" for manual icon setup
+
+### Fixed
+- Snippets work correctly with `{` auto-closing - trailing `}` omitted since auto-close adds it
+
 ## [0.0.4] - 2026-02-18
 
 ### Fixed
 - Snippets no longer add extra `}` when using `{if}` or `{for}` completions
-- Removed auto-closing `{` → `}` since Pico control blocks have their own closing syntax
 - Adds file extension icon support
 
 ## [0.0.3] - 2026-02-17

@@ -2,10 +2,11 @@
   "name": "pico-language",
   "displayName": "Pico Templates by Plentico",
   "description": "Syntax highlighting for Pico template files - a component-based templating system",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "plentico",
   "license": "MIT",
   "icon": "icon.png",
+  "main": "./out/extension.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/plentico/pico-language"
@@ -17,6 +18,9 @@
   "engines": {
     "vscode": "^1.75.0"
   },
+  "activationEvents": [
+    "onLanguage:pico"
+  ],
   "categories": [
     "Programming Languages"
   ],
@@ -58,12 +62,30 @@
         "path": "./snippets/pico.json"
       }
     ],
-    "iconThemes": [
+    "configuration": {
+      "title": "Pico",
+      "properties": {
+        "pico.autoConfigureFileIcons": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically configure file icons for .pico files in Material Icon Theme or vscode-icons"
+        }
+      }
+    },
+    "commands": [
       {
-        "id": "pico-icons",
-        "label": "Pico File Icons",
-        "path": "./icons/pico-file-icon.json"
+        "command": "pico.configureFileIcons",
+        "title": "Pico: Configure File Icons"
       }
     ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.0.0"
   }
 }
