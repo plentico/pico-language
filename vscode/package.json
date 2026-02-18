@@ -1,8 +1,8 @@
 {
   "name": "pico-language",
-  "displayName": "Pico Language Support",
+  "displayName": "Pico Templates by Plentico",
   "description": "Syntax highlighting for Pico template files - a component-based templating system",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "plentico",
   "license": "MIT",
   "icon": "icon.png",
