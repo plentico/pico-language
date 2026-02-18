@@ -1,0 +1,73 @@
+name: Publish VS Code Extension
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v0.1.0, v1.0.0
+  release:
+    types: [created]
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Install dependencies
+        working-directory: vscode
+        run: npm install --include=dev
+
+      - name: Package extension
+        working-directory: vscode
+        run: vsce package
+
+      - name: Publish to VS Code Marketplace
+        working-directory: vscode
+        run: vsce publish -p ${{ secrets.VSCE_PAT }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pico-language-vsix
+          path: vscode/*.vsix
+
+  publish-ovsx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ovsx
+        run: npm install -g ovsx
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Install dependencies
+        working-directory: vscode
+        run: npm install --include=dev
+
+      - name: Package extension
+        working-directory: vscode
+        run: vsce package
+
+      - name: Publish to Open VSX (VSCodium)
+        working-directory: vscode
+        run: ovsx publish *.vsix -p ${{ secrets.OVSX_PAT }}
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}

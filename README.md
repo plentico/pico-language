@@ -176,6 +176,73 @@ let count = items.length;
 <="./dynamic.html" {props} />
 ```
 
+## Publishing (Maintainers)
+
+### One-time Setup (Free - No Credit Card Required)
+
+1. **Create an Azure DevOps Organization** (needed for PAT)
+   - Go to https://dev.azure.com
+   - Sign in with Microsoft or GitHub account
+   - Click "Create new organization" (requires subscription now)
+
+2. **Create Personal Access Token (PAT)**
+   - In Azure DevOps, click User Settings (profile + gear icon) → Personal Access Tokens
+   - Click "New Token"
+   - Name: `vsce-publish`
+   - Organization: **All accessible organizations** (important!)
+   - Expiration: Set to max (1 year) or as desired
+   - Scopes: Click "Show all scopes" → Scroll to **Marketplace** → Check **Manage**
+   - Click "Create" and **copy the token** (you won't see it again!)
+
+3. **Create a Publisher on VS Code Marketplace**
+   - Go to https://marketplace.visualstudio.com/manage/publishers
+   - Sign in with the **same account** used for Azure DevOps
+   - Click "Create publisher"
+   - Publisher ID: `plentico`
+   - Display name: `Plentico`
+
+4. **Add Secrets to GitHub Repository**
+   - Go to repo Settings → Secrets and variables → Actions
+   - Add `VSCE_PAT` with your Azure DevOps PAT
+
+5. **(Optional) Open VSX for VSCodium**
+   - Create account at https://open-vsx.org
+   - Get access token from your account settings
+   - Add `OVSX_PAT` secret to GitHub
+
+### Publishing
+
+The extension auto-publishes when you push a version tag:
+
+```bash
+# 1. Update version in vscode/package.json
+# 2. Update vscode/CHANGELOG.md
+# 3. Commit changes
+git add -A
+git commit -m "Release v0.1.0"
+
+# 4. Create and push a version tag
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions will automatically build and publish to:
+- VS Code Marketplace
+- Open VSX (for VSCodium)
+
+**Alternative triggers:**
+- Create a GitHub Release (also works)
+- Manually: Actions → "Publish VS Code Extension" → Run workflow
+
+### Manual Publishing
+
+```bash
+cd vscode
+npm install -g @vscode/vsce
+vsce package               # Creates .vsix file
+vsce publish               # Publishes to marketplace (needs PAT)
+```
+
 ## Contributing
 
 1. Fork the repository
