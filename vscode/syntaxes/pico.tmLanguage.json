@@ -24,6 +24,8 @@
         "0": { "name": "punctuation.definition.frontmatter.end.pico" }
       },
       "patterns": [
+        { "include": "#js-comment-line" },
+        { "include": "#js-comment-block" },
         { "include": "#frontmatter-import" },
         { "include": "#frontmatter-prop" },
         { "include": "#frontmatter-let" },
@@ -241,6 +243,18 @@
       "patterns": [
         { "include": "text.html.basic" }
       ]
+    },
+    "js-comment-line": {
+      "name": "comment.line.double-slash.pico",
+      "match": "//.*$"
+    },
+    "js-comment-block": {
+      "name": "comment.block.pico",
+      "begin": "/\\*",
+      "end": "\\*/",
+      "captures": {
+        "0": { "name": "punctuation.definition.comment.pico" }
+      }
     },
     "js-expression": {
       "patterns": [

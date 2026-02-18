@@ -2,7 +2,7 @@
   "name": "pico-language",
   "displayName": "Pico Templates by Plentico",
   "description": "Syntax highlighting for Pico template files - a component-based templating system",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "plentico",
   "license": "MIT",
   "icon": "icon.png",
@@ -47,8 +47,15 @@
         "path": "./syntaxes/pico.tmLanguage.json",
         "embeddedLanguages": {
           "source.css": "css",
-          "source.js": "javascript"
+          "source.js": "javascript",
+          "meta.embedded.block.javascript": "javascript"
         }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "pico",
+        "path": "./snippets/pico.json"
       }
     ]
   }

@@ -1,8 +1,28 @@
 # Changelog
 
-All notable changes to the "Pico Language Support" extension will be documented in this file.
+All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
-## [0.1.0] - 2026-02-17
+## [0.0.3] - 2026-02-17
+
+### Added
+- **Snippets/Autocomplete** for common patterns:
+  - `if` → If block with `{if}...{/if}`
+  - `ife` → If-else block
+  - `for` → For loop with `{for let item of items}...{/for}`
+  - `prop` → Prop declaration
+  - `import` → Import statement
+  - `comp` → Component tag
+  - `---` → Frontmatter block
+- **Comment highlighting** in frontmatter:
+  - Single-line comments: `// comment`
+  - Block comments: `/* comment */`
+
+## [0.0.2] - 2026-02-17
+
+### Fixed
+- Changed display name to "Pico Templates by Plentico" to be unique in marketplace
+
+## [0.0.1] - 2026-02-17
 
 ### Added
 - Initial release

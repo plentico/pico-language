@@ -1,0 +1,120 @@
+{
+  "If Block": {
+    "prefix": ["if", "{if"],
+    "body": [
+      "{if ${1:condition}}",
+      "\t$0",
+      "{/if}"
+    ],
+    "description": "Pico if block"
+  },
+  "If-Else Block": {
+    "prefix": ["ife", "{if else", "ifelse"],
+    "body": [
+      "{if ${1:condition}}",
+      "\t$2",
+      "{else}",
+      "\t$0",
+      "{/if}"
+    ],
+    "description": "Pico if-else block"
+  },
+  "If-Else If-Else Block": {
+    "prefix": ["ifeif", "{if elseif"],
+    "body": [
+      "{if ${1:condition}}",
+      "\t$2",
+      "{else if ${3:condition}}",
+      "\t$4",
+      "{else}",
+      "\t$0",
+      "{/if}"
+    ],
+    "description": "Pico if-else if-else block"
+  },
+  "For Loop": {
+    "prefix": ["for", "{for"],
+    "body": [
+      "{for let ${1:item} of ${2:items}}",
+      "\t$0",
+      "{/for}"
+    ],
+    "description": "Pico for loop"
+  },
+  "Expression": {
+    "prefix": ["expr", "{"],
+    "body": [
+      "{${1:expression}}"
+    ],
+    "description": "Pico expression"
+  },
+  "Frontmatter": {
+    "prefix": ["---", "frontmatter", "fence"],
+    "body": [
+      "---",
+      "import ${1:Component} from \"./${2:component}.html\";",
+      "",
+      "prop ${3:name};",
+      "",
+      "let ${4:variable} = ${5:value};",
+      "---",
+      "$0"
+    ],
+    "description": "Pico frontmatter block"
+  },
+  "Import": {
+    "prefix": ["import", "imp"],
+    "body": [
+      "import ${1:Component} from \"./${2:component}.html\";"
+    ],
+    "description": "Pico import statement"
+  },
+  "Prop Declaration": {
+    "prefix": ["prop"],
+    "body": [
+      "prop ${1:name}${2: = ${3:default}};"
+    ],
+    "description": "Pico prop declaration"
+  },
+  "Component Self-Closing": {
+    "prefix": ["comp", "<C"],
+    "body": [
+      "<${1:Component} ${2:prop}={${3:value}} />"
+    ],
+    "description": "Pico self-closing component"
+  },
+  "Component with Children": {
+    "prefix": ["compch", "<Cc"],
+    "body": [
+      "<${1:Component} ${2:prop}={${3:value}}>",
+      "\t$0",
+      "</${1:Component}>"
+    ],
+    "description": "Pico component with children"
+  },
+  "Dynamic Component": {
+    "prefix": ["dyn", "<=\""],
+    "body": [
+      "<=\"${1:./component.html}\" ${2:prop}={${3:value}} />"
+    ],
+    "description": "Pico dynamic component"
+  },
+  "Style Block": {
+    "prefix": ["style", "<style"],
+    "body": [
+      "<style>",
+      "\t$0",
+      "</style>"
+    ],
+    "description": "Pico style block"
+  },
+  "Script Block": {
+    "prefix": ["script", "<script"],
+    "body": [
+      "<script>",
+      "\t$0",
+      "</script>"
+    ],
+    "description": "Pico script block"
+  }
+}
