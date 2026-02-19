@@ -44,7 +44,7 @@ The extension recognizes:
 {
   'plentico/pico-language',
   config = function()
-    require('nvim.pico').setup()
+    require('pico').setup()
   end,
 }
 ```
@@ -55,7 +55,7 @@ Plug 'plentico/pico-language'
 ```
 ```lua
 -- Add to your init.lua after plugins are loaded:
-require('nvim.pico').setup()
+require('pico').setup()
 ```
 
 **With packer:**
@@ -63,7 +63,7 @@ require('nvim.pico').setup()
 use {
   'plentico/pico-language',
   config = function()
-    require('nvim.pico').setup()
+    require('pico').setup()
   end,
 }
 ```
@@ -110,7 +110,7 @@ cp tree-sitter-pico/queries/*.scm ~/.config/nvim/queries/pico/
 The plugin includes vim syntax highlighting as fallback (used automatically if tree-sitter is not available):
 
 ```lua
-require('nvim.pico').setup({ force_vim_syntax = true })
+require('pico').setup({ force_vim_syntax = true })
 ```
 
 ## Helix
@@ -168,8 +168,9 @@ pico-language/
 │   ├── package.json
 │   └── queries/
 │       └── highlights.scm      # Highlight queries
-├── nvim/                       # Neovim configuration
-│   └── pico.lua                # Setup module
+├── lua/                        # Neovim plugin (for vim-plug, lazy, packer)
+│   └── pico/
+│       └── init.lua            # Main plugin module
 └── README.md
 ```
 
