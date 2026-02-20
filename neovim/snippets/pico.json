@@ -1,0 +1,103 @@
+{
+  "if": {
+    "prefix": "{if",
+    "body": [
+      "{if ${1:condition}}",
+      "\t$0",
+      "{/if}"
+    ],
+    "description": "Pico if block"
+  },
+  "if-else": {
+    "prefix": "{if-else",
+    "body": [
+      "{if ${1:condition}}",
+      "\t$2",
+      "{else}",
+      "\t$0",
+      "{/if}"
+    ],
+    "description": "Pico if-else block"
+  },
+  "for": {
+    "prefix": "{for",
+    "body": [
+      "{for let ${1:item} of ${2:items}}",
+      "\t$0",
+      "{/for}"
+    ],
+    "description": "Pico for loop"
+  },
+  "else": {
+    "prefix": "{else",
+    "body": [
+      "{else}"
+    ],
+    "description": "Pico else clause"
+  },
+  "else-if": {
+    "prefix": "{else if",
+    "body": [
+      "{else if ${1:condition}}"
+    ],
+    "description": "Pico else-if clause"
+  },
+  "expression": {
+    "prefix": "{$",
+    "body": [
+      "{${1:expression}}"
+    ],
+    "description": "Pico expression"
+  },
+  "component": {
+    "prefix": "<C",
+    "body": [
+      "<${1:Component} ${2:props} />"
+    ],
+    "description": "Pico component"
+  },
+  "frontmatter": {
+    "prefix": "---",
+    "body": [
+      "---",
+      "import ${1:Component} from \"${2:./component.html}\";",
+      "",
+      "prop ${3:propName};",
+      "---",
+      "$0"
+    ],
+    "description": "Pico frontmatter"
+  },
+  "prop": {
+    "prefix": "prop",
+    "body": [
+      "prop ${1:name}${2: = ${3:defaultValue}};"
+    ],
+    "description": "Pico prop declaration"
+  },
+  "import": {
+    "prefix": "import",
+    "body": [
+      "import ${1:Component} from \"${2:./path.html}\";"
+    ],
+    "description": "Pico import statement"
+  },
+  "script": {
+    "prefix": "<script",
+    "body": [
+      "<script>",
+      "\t$0",
+      "</script>"
+    ],
+    "description": "Script tag"
+  },
+  "style": {
+    "prefix": "<style",
+    "body": [
+      "<style>",
+      "\t$0",
+      "</style>"
+    ],
+    "description": "Style tag"
+  }
+}

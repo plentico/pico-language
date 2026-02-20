@@ -101,6 +101,32 @@ require('nvim-web-devicons').setup({
 })
 ```
 
+### Snippets (vim-vsnip)
+
+If you use [vim-vsnip](https://github.com/hrsh7th/vim-vsnip), add the pico snippets directory to your config:
+
+```lua
+-- Add pico snippets directory (for vim-plug users)
+vim.g.vsnip_snippet_dirs = vim.g.vsnip_snippet_dirs or {}
+table.insert(vim.g.vsnip_snippet_dirs, vim.fn.stdpath('data') .. '/plugged/pico-language/neovim/snippets')
+```
+
+**Available snippets:**
+
+| Prefix | Description |
+|--------|-------------|
+| `{if` | If block with `{/if}` |
+| `{if-else` | If-else block |
+| `{for` | For loop with `{/for}` |
+| `{else` | Else clause |
+| `{else if` | Else-if clause |
+| `---` | Frontmatter template |
+| `prop` | Prop declaration |
+| `import` | Import statement |
+| `<script` | Script tags |
+| `<style` | Style tags |
+| `<C` | Component tag |
+
 ## Helix
 
 Helix uses tree-sitter natively. Add to `~/.config/helix/languages.toml`:
@@ -158,8 +184,10 @@ pico-language/
 │   │   └── pico.vim
 │   ├── ftdetect/
 │   │   └── pico.vim
-│   └── ftplugin/
-│       └── pico.vim
+│   ├── ftplugin/
+│   │   └── pico.vim
+│   └── snippets/
+│       └── pico.json
 ├── tree-sitter-pico/           # Tree-sitter grammar
 │   ├── grammar.js
 │   ├── package.json
