@@ -39,23 +39,27 @@ The extension recognizes:
 
 ### Installation
 
+The Neovim plugin is located in the `neovim/` subdirectory.
+
+**With vim-plug:**
+```vim
+Plug 'plentico/pico-language', { 'rtp': 'neovim' }
+```
+
+Then in your `init.lua`:
+```lua
+require('pico').setup()
+```
+
 **With lazy.nvim:**
 ```lua
 {
   'plentico/pico-language',
   config = function()
+    vim.opt.runtimepath:append(vim.fn.stdpath('data') .. '/lazy/pico-language/neovim')
     require('pico').setup()
   end,
 }
-```
-
-**With vim-plug:**
-```vim
-Plug 'plentico/pico-language'
-```
-```lua
--- Add to your init.lua after plugins are loaded:
-require('pico').setup()
 ```
 
 **With packer:**
@@ -63,10 +67,23 @@ require('pico').setup()
 use {
   'plentico/pico-language',
   config = function()
+    vim.opt.runtimepath:append(vim.fn.stdpath('data') .. '/site/pack/packer/start/pico-language/neovim')
     require('pico').setup()
   end,
 }
 ```
+
+### Syntax Highlighting Features
+
+The Neovim plugin provides comprehensive syntax highlighting including:
+
+- **Frontmatter** - JavaScript highlighting inside `---` fences with support for the custom `prop` keyword
+- **HTML Elements** - Consistent coloring for opening and closing tags
+- **Control Structures** - Proper highlighting for `{if}`, `{else}`, `{for}` with keywords, operators, and expressions
+- **Embedded CSS** - Full CSS syntax highlighting inside `<style>` tags
+- **Embedded JavaScript** - Full JS syntax highlighting inside `<script>` tags and frontmatter
+- **Component Tags** - PascalCase components highlighted as types
+- **Expressions** - Template expressions `{variable}` and `{expression}` with proper operator highlighting
 
 ### File Icons (nvim-web-devicons)
 
@@ -76,41 +93,12 @@ If you use [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons), 
 require('nvim-web-devicons').setup({
   override_by_extension = {
     ['pico'] = {
-      icon = '󰗀',  -- Nerd Font: nf-md-file_code (use any icon you prefer)
+      icon = '󰗀',
       color = '#22a6ed',
       name = 'Pico',
     },
   },
 })
-```
-
-This works automatically with nvim-tree, lualine, bufferline, and other plugins that use nvim-web-devicons.
-
-**Note:** You need to declare `require('nvim-web-devicons').setup({...})` _before_ other setups that may call nvim-web-devicons (for example before `require('nvim-tree').setup({...})` is called). You may need to close and reopen nvim as well.
-
-### Tree-sitter (Optional)
-
-For enhanced syntax highlighting with tree-sitter:
-
-1. Build the tree-sitter parser:
-```bash
-cd tree-sitter-pico
-npm install
-npm run build
-```
-
-2. Copy query files:
-```bash
-mkdir -p ~/.config/nvim/queries/pico
-cp tree-sitter-pico/queries/*.scm ~/.config/nvim/queries/pico/
-```
-
-### Fallback Vim Syntax
-
-The plugin includes vim syntax highlighting as fallback (used automatically if tree-sitter is not available):
-
-```lua
-require('pico').setup({ force_vim_syntax = true })
 ```
 
 ## Helix
@@ -152,25 +140,32 @@ The TextMate grammar can be converted for Sublime Text:
 
 1. Copy `vscode/syntaxes/pico.tmLanguage.json` to your Sublime packages
 2. Rename to `Pico.tmLanguage`
-3. Convert JSON to XML plist format (many online converters available)
+3. Convert JSON to XML plist format
 
 ## Structure
 
 ```
 pico-language/
 ├── vscode/                     # VS Code extension
-│   ├── package.json            # Extension manifest
+│   ├── package.json
 │   ├── language-configuration.json
 │   └── syntaxes/
-│       └── pico.tmLanguage.json  # TextMate grammar
+│       └── pico.tmLanguage.json
+├── neovim/                     # Neovim plugin
+│   ├── lua/pico/
+│   │   └── init.lua
+│   ├── syntax/
+│   │   └── pico.vim
+│   ├── ftdetect/
+│   │   └── pico.vim
+│   └── ftplugin/
+│       └── pico.vim
 ├── tree-sitter-pico/           # Tree-sitter grammar
-│   ├── grammar.js              # Grammar definition
+│   ├── grammar.js
 │   ├── package.json
 │   └── queries/
-│       └── highlights.scm      # Highlight queries
-├── lua/                        # Neovim plugin (for vim-plug, lazy, packer)
-│   └── pico/
-│       └── init.lua            # Main plugin module
+│       ├── highlights.scm
+│       └── injections.scm
 └── README.md
 ```
 
@@ -211,73 +206,6 @@ let count = items.length;
 </Card>
 
 <="./dynamic.html" {props} />
-```
-
-## Publishing (Maintainers)
-
-### One-time Setup (Free - No Credit Card Required)
-
-1. **Create an Azure DevOps Organization** (needed for PAT)
-   - Go to https://dev.azure.com
-   - Sign in with Microsoft or GitHub account
-   - Click "Create new organization" (requires subscription now)
-
-2. **Create Personal Access Token (PAT)**
-   - In Azure DevOps, click User Settings (profile + gear icon) → Personal Access Tokens
-   - Click "New Token"
-   - Name: `vsce-publish`
-   - Organization: **All accessible organizations** (important!)
-   - Expiration: Set to max (1 year) or as desired
-   - Scopes: Click "Show all scopes" → Scroll to **Marketplace** → Check **Manage**
-   - Click "Create" and **copy the token** (you won't see it again!)
-
-3. **Create a Publisher on VS Code Marketplace**
-   - Go to https://marketplace.visualstudio.com/manage/publishers
-   - Sign in with the **same account** used for Azure DevOps
-   - Click "Create publisher"
-   - Publisher ID: `plentico`
-   - Display name: `Plentico`
-
-4. **Add Secrets to GitHub Repository**
-   - Go to repo Settings → Secrets and variables → Actions
-   - Add `VSCE_PAT` with your Azure DevOps PAT
-
-5. **(Optional) Open VSX for VSCodium**
-   - Create account at https://open-vsx.org
-   - Get access token from your account settings
-   - Add `OVSX_PAT` secret to GitHub
-
-### Publishing
-
-The extension auto-publishes when you push a version tag:
-
-```bash
-# 1. Update version in vscode/package.json
-# 2. Update vscode/CHANGELOG.md
-# 3. Commit changes
-git add -A
-git commit -m "Release v0.1.0"
-
-# 4. Create and push a version tag
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-GitHub Actions will automatically build and publish to:
-- VS Code Marketplace
-- Open VSX (for VSCodium)
-
-**Alternative triggers:**
-- Create a GitHub Release (also works)
-- Manually: Actions → "Publish VS Code Extension" → Run workflow
-
-### Manual Publishing
-
-```bash
-cd vscode
-npm install -g @vscode/vsce
-vsce package               # Creates .vsix file
-vsce publish               # Publishes to marketplace (needs PAT)
 ```
 
 ## Contributing
