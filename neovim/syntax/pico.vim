@@ -36,26 +36,30 @@ syntax match picoPropKeyword /\C\<prop\>/ contained containedin=picoFrontmatter
 " Control Flow Structures
 " ============================================================================
 
-" If blocks
-syntax region picoIfExpression start=/\C{if\s\+/ end=/}/ contains=picoControlBraceOpen,picoControlKeywordIf,@picoExprContents,picoControlBraceClose oneline keepend
-syntax region picoElseIfExpression start=/\C{else\s\+if\s\+/ end=/}/ contains=picoControlBraceOpen,picoControlKeywordElse,picoControlKeywordIf,@picoExprContents,picoControlBraceClose oneline keepend
+" If blocks - use lookahead so { is delimiter and if is inside region
+syntax region picoIfExpression matchgroup=picoControlBrace start=/\C{\ze if\>/ start=/\C{\zeif\>/ end=/}/ contains=picoControlKeywordIf,@picoExprContents oneline keepend
+syntax region picoElseIfExpression matchgroup=picoControlBrace start=/\C{\zeelse\s\+if\>/ end=/}/ contains=picoControlKeywordElse,picoControlKeywordIf,@picoExprContents oneline keepend
 syntax match picoElseStatement /\C{else}/ contains=picoControlBraceOpen,picoControlKeywordElse,picoControlBraceClose
 syntax match picoEndIf /\C{\/if}/ contains=picoControlBraceOpen,picoControlKeywordEndIf,picoControlBraceClose
 
-" For blocks
-syntax region picoForExpression start=/\C{for\s\+/ end=/}/ contains=picoControlBraceOpen,picoControlKeywordFor,picoForKeyword,@picoExprContents,picoControlBraceClose oneline keepend
+" For blocks - use lookahead so { is delimiter and for is inside region
+syntax region picoForExpression matchgroup=picoControlBrace start=/\C{\zefor\>/ end=/}/ contains=picoControlKeywordFor,picoForKeyword,@picoExprContents oneline keepend
 syntax match picoEndFor /\C{\/for}/ contains=picoControlBraceOpen,picoControlKeywordEndFor,picoControlBraceClose
 
 " Control structure components
 syntax match picoControlBraceOpen /{/ contained
 syntax match picoControlBraceClose /}/ contained
-syntax match picoControlKeywordIf /\C\<if\>/ contained
-syntax match picoControlKeywordElse /\C\<else\>/ contained
-syntax match picoControlKeywordFor /\C\<for\>/ contained
+syntax match picoControlBrace /[{}]/ contained
+
+" Use syntax keyword for higher priority over picoExprIdentifier
+syntax keyword picoControlKeywordIf if contained
+syntax keyword picoControlKeywordElse else contained
+syntax keyword picoControlKeywordFor for contained
+syntax keyword picoForKeyword let of contained
+
+" These need match for the slash
 syntax match picoControlKeywordEndIf /\C\/if/ contained
 syntax match picoControlKeywordEndFor /\C\/for/ contained
-syntax match picoForKeyword /\C\<let\>/ contained
-syntax match picoForKeyword /\C\<of\>/ contained
 
 " ============================================================================
 " Template Expressions
@@ -136,6 +140,7 @@ highlight default link picoHtmlAttr Type
 highlight default link picoHtmlString String
 
 " Control structures
+highlight default link picoControlBrace Special
 highlight default link picoControlBraceOpen Special
 highlight default link picoControlBraceClose Special
 highlight default link picoControlKeywordIf Conditional
