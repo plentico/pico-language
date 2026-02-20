@@ -106,9 +106,12 @@ require('nvim-web-devicons').setup({
 If you use [vim-vsnip](https://github.com/hrsh7th/vim-vsnip), add the pico snippets directory to your config:
 
 ```lua
--- Add pico snippets directory (for vim-plug users)
-vim.g.vsnip_snippet_dirs = vim.g.vsnip_snippet_dirs or {}
-table.insert(vim.g.vsnip_snippet_dirs, vim.fn.stdpath('data') .. '/plugged/pico-language/neovim/snippets')
+-- Add pico snippets directory
+-- Adjust the path based on your plugin manager location
+vim.g.vsnip_snippet_dirs = { 
+  vim.fn.expand('~/.config/nvim/plugged/pico-language/neovim/snippets')  -- vim-plug
+  -- Or for lazy.nvim: vim.fn.stdpath('data') .. '/lazy/pico-language/neovim/snippets'
+}
 ```
 
 **Available snippets:**
