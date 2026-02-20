@@ -20,20 +20,6 @@ syntax include @picoCSS syntax/css.vim
 unlet! b:current_syntax
 
 " ============================================================================
-" Script Element
-" ============================================================================
-
-" Script tag with embedded JavaScript
-syntax region picoScriptRegion matchgroup=picoScriptTag start=/<script>/ end=/<\/script>/ contains=@picoJavaScript keepend
-
-" ============================================================================
-" Style Element
-" ============================================================================
-
-" Style tag with embedded CSS
-syntax region picoStyleRegion matchgroup=picoStyleTag start=/<style>/ end=/<\/style>/ contains=@picoCSS keepend
-
-" ============================================================================
 " Frontmatter
 " ============================================================================
 
@@ -44,32 +30,32 @@ syntax region picoFrontmatter start=/\%^---\s*$/ end=/^---\s*$/ keepend contains
 syntax match picoFrontmatterDelimiter /^---\s*$/ contained
 
 " 'prop' keyword - custom Pico keyword in frontmatter
-syntax match picoPropKeyword /\<prop\>/ contained containedin=picoFrontmatter
+syntax match picoPropKeyword /\C\<prop\>/ contained containedin=picoFrontmatter
 
 " ============================================================================
 " Control Flow Structures
 " ============================================================================
 
 " If blocks
-syntax region picoIfExpression start=/{if\s\+/ end=/}/ contains=picoControlBraceOpen,picoControlKeywordIf,@picoExprContents,picoControlBraceClose oneline keepend
-syntax region picoElseIfExpression start=/{else\s\+if\s\+/ end=/}/ contains=picoControlBraceOpen,picoControlKeywordElse,picoControlKeywordIf,@picoExprContents,picoControlBraceClose oneline keepend
-syntax match picoElseStatement /{else}/ contains=picoControlBraceOpen,picoControlKeywordElse,picoControlBraceClose
-syntax match picoEndIf /{\/if}/ contains=picoControlBraceOpen,picoControlKeywordEndIf,picoControlBraceClose
+syntax region picoIfExpression start=/\C{if\s\+/ end=/}/ contains=picoControlBraceOpen,picoControlKeywordIf,@picoExprContents,picoControlBraceClose oneline keepend
+syntax region picoElseIfExpression start=/\C{else\s\+if\s\+/ end=/}/ contains=picoControlBraceOpen,picoControlKeywordElse,picoControlKeywordIf,@picoExprContents,picoControlBraceClose oneline keepend
+syntax match picoElseStatement /\C{else}/ contains=picoControlBraceOpen,picoControlKeywordElse,picoControlBraceClose
+syntax match picoEndIf /\C{\/if}/ contains=picoControlBraceOpen,picoControlKeywordEndIf,picoControlBraceClose
 
 " For blocks
-syntax region picoForExpression start=/{for\s\+/ end=/}/ contains=picoControlBraceOpen,picoControlKeywordFor,picoForKeyword,@picoExprContents,picoControlBraceClose oneline keepend
-syntax match picoEndFor /{\/for}/ contains=picoControlBraceOpen,picoControlKeywordEndFor,picoControlBraceClose
+syntax region picoForExpression start=/\C{for\s\+/ end=/}/ contains=picoControlBraceOpen,picoControlKeywordFor,picoForKeyword,@picoExprContents,picoControlBraceClose oneline keepend
+syntax match picoEndFor /\C{\/for}/ contains=picoControlBraceOpen,picoControlKeywordEndFor,picoControlBraceClose
 
 " Control structure components
 syntax match picoControlBraceOpen /{/ contained
 syntax match picoControlBraceClose /}/ contained
-syntax match picoControlKeywordIf /\<if\>/ contained
-syntax match picoControlKeywordElse /\<else\>/ contained
-syntax match picoControlKeywordFor /\<for\>/ contained
-syntax match picoControlKeywordEndIf /\/if/ contained
-syntax match picoControlKeywordEndFor /\/for/ contained
-syntax match picoForKeyword /\<let\>/ contained
-syntax match picoForKeyword /\<of\>/ contained
+syntax match picoControlKeywordIf /\C\<if\>/ contained
+syntax match picoControlKeywordElse /\C\<else\>/ contained
+syntax match picoControlKeywordFor /\C\<for\>/ contained
+syntax match picoControlKeywordEndIf /\C\/if/ contained
+syntax match picoControlKeywordEndFor /\C\/for/ contained
+syntax match picoForKeyword /\C\<let\>/ contained
+syntax match picoForKeyword /\C\<of\>/ contained
 
 " ============================================================================
 " Template Expressions
@@ -88,17 +74,17 @@ syntax region picoExprStringDouble start=/"/ end=/"/ contained oneline
 syntax region picoExprStringSingle start=/'/ end=/'/ contained oneline
 
 " General expression interpolation {variable} or {expression}
-syntax region picoExpression start=/{\(if\>\|for\>\|else\>\|\/if}\|\/for}\)\@!/ end=/}/ contains=@picoExprContents oneline keepend
+syntax region picoExpression start=/\C{\(if\>\|for\>\|else\>\|\/if}\|\/for}\)\@!/ end=/}/ contains=@picoExprContents oneline keepend
       \ containedin=ALLBUT,picoFrontmatter,picoStyleRegion,picoScriptRegion,picoComment,picoIfExpression,picoElseIfExpression,picoForExpression
 
 " ============================================================================
-" HTML Elements
+" HTML Elements (defined before script/style so those take precedence)
 " ============================================================================
 
-" HTML tags - lowercase
-syntax match picoHtmlTagName /\(<\/\?\)\@<=[a-z][a-z0-9-]*/ contained
-syntax region picoHtmlTag start=/<[a-z][^>]*/ end=/>/ contains=picoHtmlTagName,picoHtmlAttr,picoHtmlString,picoExpression keepend
-syntax region picoHtmlEndTag start=/<\/[a-z]/ end=/>/ contains=picoHtmlTagName keepend
+" HTML tags - lowercase (\C = case sensitive)
+syntax match picoHtmlTagName /\C\(<\/\?\)\@<=[a-z][a-z0-9-]*/ contained
+syntax region picoHtmlTag start=/\C<[a-z]/ end=/>/ contains=picoHtmlTagName,picoHtmlAttr,picoHtmlString,picoExpression keepend
+syntax region picoHtmlEndTag start=/\C<\/[a-z]/ end=/>/ contains=picoHtmlTagName keepend
 
 " HTML attributes
 syntax match picoHtmlAttr /\s\+[a-zA-Z_:][a-zA-Z0-9_:-]*/ contained
@@ -109,9 +95,20 @@ syntax region picoHtmlString start=/'/ end=/'/ contained oneline
 " Component Tags (PascalCase)
 " ============================================================================
 
-syntax match picoComponentName /\(<\/\?\)\@<=[A-Z][A-Za-z0-9_]*/ contained
-syntax region picoComponentTag start=/<[A-Z]/ end=/\/\?>/ contains=picoComponentName,picoHtmlAttr,picoHtmlString,picoExpression keepend
-syntax region picoComponentEndTag start=/<\/[A-Z]/ end=/>/ contains=picoComponentName keepend
+" Components must start with uppercase (\C = case sensitive)
+syntax match picoComponentName /\C\(<\/\?\)\@<=[A-Z][A-Za-z0-9_]*/ contained
+syntax region picoComponentTag start=/\C<[A-Z]/ end=/\/\?>/ contains=picoComponentName,picoHtmlAttr,picoHtmlString,picoExpression keepend
+syntax region picoComponentEndTag start=/\C<\/[A-Z]/ end=/>/ contains=picoComponentName keepend
+
+" ============================================================================
+" Script/Style Elements (defined LAST to take precedence over HTML)
+" ============================================================================
+
+" Script tag with embedded JavaScript (\C = case sensitive)
+syntax region picoScriptRegion matchgroup=picoScriptTag start=/\C<script>/ end=/\C<\/script>/ contains=@picoJavaScript keepend
+
+" Style tag with embedded CSS (\C = case sensitive)
+syntax region picoStyleRegion matchgroup=picoStyleTag start=/\C<style>/ end=/\C<\/style>/ contains=@picoCSS keepend
 
 " ============================================================================
 " Comments
@@ -127,13 +124,15 @@ syntax region picoComment start=/<!--/ end=/-->/ contains=@Spell
 highlight default link picoFrontmatterDelimiter PreProc
 highlight default link picoPropKeyword Keyword
 
-" Script/Style tags
-highlight default link picoScriptTag htmlTag
-highlight default link picoStyleTag htmlTag
+" Script/Style tags (use Statement for better color support)
+highlight default link picoScriptTag Statement
+highlight default link picoStyleTag Statement
 
-" HTML elements
-highlight default link picoHtmlTagName htmlTagName
-highlight default link picoHtmlAttr htmlArg
+" HTML elements (use Function/Identifier for better color support)
+highlight default link picoHtmlTagName Function
+highlight default link picoHtmlTag Normal
+highlight default link picoHtmlEndTag Normal
+highlight default link picoHtmlAttr Type
 highlight default link picoHtmlString String
 
 " Control structures
