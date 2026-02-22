@@ -101,6 +101,33 @@ require('nvim-web-devicons').setup({
 })
 ```
 
+### LSP / Autocomplete for Embedded Languages
+
+To get JavaScript autocomplete inside `<script>` tags and CSS autocomplete inside `<style>` tags, enable LSP support:
+
+```lua
+require('pico').setup({ lsp = true })
+```
+
+This configures the HTML and CSS language servers to work with pico files. You'll need to have them installed:
+
+```bash
+npm install -g vscode-langservers-extracted
+```
+
+**Custom LSP options:**
+```lua
+require('pico').setup({
+  lsp = {
+    capabilities = require('cmp_nvim_lsp').default_capabilities(),
+    on_attach = function(client, bufnr)
+      -- Your on_attach function
+    end,
+    cssls = false,  -- Disable CSS language server if you only want HTML
+  }
+})
+```
+
 ### Snippets
 
 #### LuaSnip (Recommended)

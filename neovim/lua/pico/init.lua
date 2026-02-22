@@ -167,6 +167,79 @@ local function setup_luasnip_snippets()
   return true
 end
 
+-- Setup LSP for embedded JS/CSS completion
+local function setup_lsp(opts)
+  -- Get user's capabilities (from nvim-cmp if available)
+  local capabilities = vim.lsp.protocol.make_client_capabilities()
+  local cmp_ok, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
+  if cmp_ok then
+    capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
+  end
+  
+  -- Merge with user-provided capabilities
+  if opts.capabilities then
+    capabilities = vim.tbl_deep_extend("force", capabilities, opts.capabilities)
+  end
+  
+  -- Use vim.lsp.config (Neovim 0.11+) if available, fall back to lspconfig
+  if vim.lsp.config then
+    -- Neovim 0.11+ native LSP config
+    vim.lsp.config("html", {
+      capabilities = capabilities,
+      filetypes = { "html", "pico" },
+      on_attach = opts.on_attach,
+      init_options = {
+        provideFormatter = false,
+        embeddedLanguages = {
+          css = true,
+          javascript = true,
+        },
+      },
+    })
+    vim.lsp.enable("html")
+    
+    if opts.cssls ~= false then
+      vim.lsp.config("cssls", {
+        capabilities = capabilities,
+        filetypes = { "css", "scss", "less", "pico" },
+        on_attach = opts.on_attach,
+      })
+      vim.lsp.enable("cssls")
+    end
+  else
+    -- Fallback to lspconfig for older Neovim versions
+    local lspconfig_ok, lspconfig = pcall(require, "lspconfig")
+    if not lspconfig_ok then
+      return false
+    end
+    
+    if lspconfig.html then
+      lspconfig.html.setup({
+        capabilities = capabilities,
+        filetypes = { "html", "pico" },
+        on_attach = opts.on_attach,
+        init_options = {
+          provideFormatter = false,
+          embeddedLanguages = {
+            css = true,
+            javascript = true,
+          },
+        },
+      })
+    end
+    
+    if lspconfig.cssls and opts.cssls ~= false then
+      lspconfig.cssls.setup({
+        capabilities = capabilities,
+        filetypes = { "css", "scss", "less", "pico" },
+        on_attach = opts.on_attach,
+      })
+    end
+  end
+  
+  return true
+end
+
 -- Setup pico filetype and syntax
 function M.setup(opts)
   opts = opts or {}
@@ -189,6 +262,14 @@ function M.setup(opts)
       if loaded and opts.snippets_loaded then
         opts.snippets_loaded()
       end
+    end, 100)
+  end
+  
+  -- Setup LSP for embedded language support (disabled by default)
+  -- Enable with: require('pico').setup({ lsp = true })
+  if opts.lsp then
+    vim.defer_fn(function()
+      setup_lsp(type(opts.lsp) == "table" and opts.lsp or {})
     end, 100)
   end
 end
