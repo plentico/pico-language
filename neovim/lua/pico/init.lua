@@ -184,6 +184,7 @@ local function setup_lsp(opts)
   -- Use vim.lsp.config (Neovim 0.11+) if available, fall back to lspconfig
   if vim.lsp.config then
     -- Neovim 0.11+ native LSP config
+    -- HTML language server handles embedded CSS and JavaScript in <style> and <script> tags
     vim.lsp.config("html", {
       capabilities = capabilities,
       filetypes = { "html", "pico" },
@@ -198,10 +199,12 @@ local function setup_lsp(opts)
     })
     vim.lsp.enable("html")
     
-    if opts.cssls ~= false then
+    -- Only enable separate CSS language server if explicitly requested
+    -- (HTML LS already handles CSS inside <style> tags)
+    if opts.cssls == true then
       vim.lsp.config("cssls", {
         capabilities = capabilities,
-        filetypes = { "css", "scss", "less", "pico" },
+        filetypes = { "css", "scss", "less" },  -- Don't include pico
         on_attach = opts.on_attach,
       })
       vim.lsp.enable("cssls")
@@ -228,10 +231,11 @@ local function setup_lsp(opts)
       })
     end
     
-    if lspconfig.cssls and opts.cssls ~= false then
+    -- Only enable separate CSS language server if explicitly requested
+    if opts.cssls == true and lspconfig.cssls then
       lspconfig.cssls.setup({
         capabilities = capabilities,
-        filetypes = { "css", "scss", "less", "pico" },
+        filetypes = { "css", "scss", "less" },  -- Don't include pico
         on_attach = opts.on_attach,
       })
     end

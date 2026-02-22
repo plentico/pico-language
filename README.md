@@ -123,7 +123,6 @@ require('pico').setup({
     on_attach = function(client, bufnr)
       -- Your on_attach function
     end,
-    cssls = false,  -- Disable CSS language server if you only want HTML
   }
 })
 ```
