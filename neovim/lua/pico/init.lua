@@ -48,6 +48,10 @@ local function setup_luasnip_snippets()
   local i = ls.insert_node
   local f = ls.function_node
   
+  -- Clear any existing pico snippets (e.g., from JSON lazy_load)
+  -- This ensures only context-aware snippets are used
+  ls.cleanup("pico")
+  
   -- Condition that checks template context
   local in_template = {
     condition = M.in_template_context,

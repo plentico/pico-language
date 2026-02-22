@@ -107,6 +107,14 @@ require('nvim-web-devicons').setup({
 
 If you use [LuaSnip](https://github.com/L3MON4D3/LuaSnip), context-aware snippets are automatically loaded when you call `require('pico').setup()`. 
 
+**Important:** Do NOT manually load the JSON snippets with `lazy_load()` for pico files - the setup function handles this automatically with context awareness. If you have a line like this, remove it:
+```lua
+-- Remove this line if present:
+require("luasnip.loaders.from_vscode").lazy_load({
+  paths = { vim.fn.expand("~/.local/share/nvim/lazy/pico-language/neovim/snippets") }
+})
+```
+
 **Context-aware behavior:** Template snippets like `{if`, `{for`, `{$`, etc. will only trigger in the HTML template section of your `.pico` files. They are automatically disabled inside:
 - Frontmatter (`---` fences)
 - `<script>` tags
