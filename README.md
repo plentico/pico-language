@@ -101,7 +101,25 @@ require('nvim-web-devicons').setup({
 })
 ```
 
-### Snippets (vim-vsnip)
+### Snippets
+
+#### LuaSnip (Recommended)
+
+If you use [LuaSnip](https://github.com/L3MON4D3/LuaSnip), context-aware snippets are automatically loaded when you call `require('pico').setup()`. 
+
+**Context-aware behavior:** Template snippets like `{if`, `{for`, `{$`, etc. will only trigger in the HTML template section of your `.pico` files. They are automatically disabled inside:
+- Frontmatter (`---` fences)
+- `<script>` tags
+- `<style>` tags
+
+This prevents Pico template snippets from interfering when you're writing JavaScript or CSS.
+
+To disable auto-loaded snippets:
+```lua
+require('pico').setup({ snippets = false })
+```
+
+#### vim-vsnip
 
 If you use [vim-vsnip](https://github.com/hrsh7th/vim-vsnip), add the pico snippets directory to your config:
 
@@ -113,6 +131,8 @@ vim.g.vsnip_snippet_dirs = {
   -- Or for lazy.nvim: vim.fn.stdpath('data') .. '/lazy/pico-language/neovim/snippets'
 }
 ```
+
+**Note:** vim-vsnip uses JSON snippets which don't support context awareness. Snippets will be available everywhere in the file.
 
 **Available snippets:**
 
