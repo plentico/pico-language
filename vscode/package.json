@@ -2,7 +2,7 @@
   "name": "pico-language",
   "displayName": "Pico Templates by Plentico",
   "description": "Syntax highlighting for Pico template files - a component-based templating system",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "publisher": "plentico",
   "license": "MIT",
   "icon": "icon.png",
@@ -73,6 +73,11 @@
           "type": "boolean",
           "default": true,
           "description": "Automatically configure file icons for .pico files in Material Icon Theme or vscode-icons"
+        },
+        "pico.enableWordBasedSuggestions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable word-based suggestions (abc autocomplete) for Pico files. Disabled by default to reduce noise."
         }
       }
     },

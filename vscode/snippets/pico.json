@@ -52,13 +52,8 @@
     "prefix": ["---", "fence"],
     "body": [
       "---",
-      "import ${1:Component} from \"./${2:component}.html\";",
-      "",
-      "prop ${3:name};",
-      "",
-      "let ${4:variable} = ${5:value};",
-      "---",
-      "$0"
+      "$0",
+      "---"
     ],
     "description": "Pico frontmatter block"
   },
@@ -104,7 +99,7 @@
     "body": [
       "<style>",
       "\t$0",
-      "</style>"
+      "</style"
     ],
     "description": "Pico style block"
   },
@@ -113,7 +108,7 @@
     "body": [
       "<script>",
       "\t$0",
-      "</script>"
+      "</script"
     ],
     "description": "Pico script block"
   }

@@ -14,6 +14,18 @@ export function activate(context: vscode.ExtensionContext) {
         configureFileIcons();
     }
     
+    // Configure word-based suggestions
+    configureWordBasedSuggestions();
+    
+    // Listen for configuration changes
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration('pico.enableWordBasedSuggestions')) {
+                configureWordBasedSuggestions();
+            }
+        })
+    );
+    
     // Register command to manually configure icons
     context.subscriptions.push(
         vscode.commands.registerCommand('pico.configureFileIcons', configureFileIcons)
@@ -87,6 +99,24 @@ async function configureFileIcons() {
     vscode.window.showInformationMessage(
         'Pico: No supported icon theme detected. Install Material Icon Theme or vscode-icons for .pico file icons.'
     );
+}
+
+async function configureWordBasedSuggestions() {
+    const picoConfig = vscode.workspace.getConfiguration('pico');
+    const enableWordBased = picoConfig.get('enableWordBasedSuggestions', false);
+    
+    const editorConfig = vscode.workspace.getConfiguration('editor', { languageId: 'pico' });
+    const currentValue = editorConfig.get('wordBasedSuggestions');
+    const targetValue = enableWordBased ? 'matchingDocuments' : 'off';
+    
+    // Only update if the value differs from what we want
+    if (currentValue !== targetValue) {
+        try {
+            await editorConfig.update('wordBasedSuggestions', targetValue, vscode.ConfigurationTarget.Global, true);
+        } catch (err) {
+            console.error('Pico: Failed to configure word-based suggestions', err);
+        }
+    }
 }
 
 export function deactivate() {}

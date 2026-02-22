@@ -2,6 +2,16 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.8] - 2026-02-21
+
+### Added
+- Disabled the "abc" word bases suggestions by default
+- Added new configuration option: `pico.enableWordBasedSuggestions`
+
+### Changed
+- Simplified frontmatter / fence autocompletion
+- Removed duplicate closing angle bracket > from script and style snippets because of element auto-closing
+
 ## [0.0.7] - 2026-02-18
 
 ### Added
