@@ -5,32 +5,54 @@
 local M = {}
 
 -- Check if cursor is in a pico template context (not in frontmatter, script, or style)
+-- Uses buffer parsing for reliable detection
 function M.in_template_context()
-  local line = vim.fn.line('.')
-  local col = vim.fn.col('.')
+  local bufnr = vim.api.nvim_get_current_buf()
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local line_num = cursor[1]  -- 1-indexed
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   
-  -- Get the syntax group at cursor position
-  local syn_id = vim.fn.synID(line, col, 1)
-  local syn_name = vim.fn.synIDattr(syn_id, "name")
+  -- Track regions
+  local in_frontmatter = false
+  local in_script = false
+  local in_style = false
+  local frontmatter_count = 0
   
-  -- Also check the transparent group
-  local trans_id = vim.fn.synID(line, col, 0)
-  local trans_name = vim.fn.synIDattr(trans_id, "name")
-  
-  -- Patterns for excluded regions
-  local excluded_patterns = {
-    "picoFrontmatter",
-    "picoScriptRegion", 
-    "picoStyleRegion",
-    "^javascript",  -- Embedded JS syntax groups
-    "^js",
-    "^css",         -- Embedded CSS syntax groups
-  }
-  
-  for _, pattern in ipairs(excluded_patterns) do
-    if syn_name:match(pattern) or trans_name:match(pattern) then
-      return false
+  for i, line in ipairs(lines) do
+    if i > line_num then
+      break
     end
+    
+    -- Check for frontmatter delimiters (must be at start of file)
+    if line:match("^%-%-%-") then
+      frontmatter_count = frontmatter_count + 1
+      if frontmatter_count == 1 then
+        in_frontmatter = true
+      elseif frontmatter_count == 2 then
+        in_frontmatter = false
+      end
+    end
+    
+    -- Check for script tags
+    if line:match("<script[^>]*>") then
+      in_script = true
+    end
+    if line:match("</script>") then
+      in_script = false
+    end
+    
+    -- Check for style tags
+    if line:match("<style[^>]*>") then
+      in_style = true
+    end
+    if line:match("</style>") then
+      in_style = false
+    end
+  end
+  
+  -- Return false if we're in any excluded region
+  if in_frontmatter or in_script or in_style then
+    return false
   end
   
   return true
@@ -46,16 +68,33 @@ local function setup_luasnip_snippets()
   local s = ls.snippet
   local t = ls.text_node
   local i = ls.insert_node
-  local f = ls.function_node
+  local c = ls.choice_node
+  local sn = ls.snippet_node
+  local d = ls.dynamic_node
+  
+  -- Wrapper function that checks context and returns empty if not in template
+  local function template_only(nodes)
+    return d(1, function()
+      if M.in_template_context() then
+        return sn(nil, nodes)
+      else
+        return sn(nil, {})
+      end
+    end)
+  end
   
   -- Clear any existing pico snippets (e.g., from JSON lazy_load)
   -- This ensures only context-aware snippets are used
   ls.cleanup("pico")
   
   -- Condition that checks template context
+  local function cond_fn()
+    return M.in_template_context()
+  end
+  
   local in_template = {
-    condition = M.in_template_context,
-    show_condition = M.in_template_context,
+    condition = cond_fn,
+    show_condition = cond_fn,
   }
   
   -- Define pico snippets with context awareness

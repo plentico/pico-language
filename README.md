@@ -135,8 +135,8 @@ If you use [vim-vsnip](https://github.com/hrsh7th/vim-vsnip), add the pico snipp
 -- Add pico snippets directory
 -- Adjust the path based on your plugin manager location
 vim.g.vsnip_snippet_dirs = { 
-  vim.fn.expand('~/.config/nvim/plugged/pico-language/neovim/snippets')  -- vim-plug
-  -- Or for lazy.nvim: vim.fn.stdpath('data') .. '/lazy/pico-language/neovim/snippets'
+  vim.fn.expand('~/.config/nvim/plugged/pico-language/neovim/vsnip-snippets')  -- vim-plug
+  -- Or for lazy.nvim: vim.fn.stdpath('data') .. '/lazy/pico-language/neovim/vsnip-snippets'
 }
 ```
 
@@ -217,7 +217,7 @@ pico-language/
 │   │   └── pico.vim
 │   ├── ftplugin/
 │   │   └── pico.vim
-│   └── snippets/
+│   └── vsnip-snippets/
 │       └── pico.json
 ├── tree-sitter-pico/           # Tree-sitter grammar
 │   ├── grammar.js
