@@ -48,8 +48,9 @@ function activate(context) {
     }
     // Configure word-based suggestions
     configureWordBasedSuggestions();
-    // Register frontmatter completion provider
+    // Register completion providers
     registerFrontmatterCompletions(context);
+    registerControlFlowCompletions(context);
     // Listen for configuration changes
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('pico.enableWordBasedSuggestions')) {
@@ -74,7 +75,7 @@ function registerFrontmatterCompletions(context) {
             const importItem = new vscode.CompletionItem('import', vscode.CompletionItemKind.Snippet);
             importItem.detail = 'Pico import statement';
             importItem.documentation = new vscode.MarkdownString('Import a component from another file');
-            importItem.insertText = new vscode.SnippetString('import ${1:Component} from "./${2:component}.html";');
+            importItem.insertText = new vscode.SnippetString('import ${1:Component} from "./${2:component}.pico";');
             completions.push(importItem);
             // Prop snippet
             const propItem = new vscode.CompletionItem('prop', vscode.CompletionItemKind.Snippet);
@@ -88,6 +89,81 @@ function registerFrontmatterCompletions(context) {
     // Trigger characters
     'i', 'p');
     context.subscriptions.push(frontmatterProvider);
+}
+/**
+ * Check if position is inside a <style> block
+ */
+function isInStyleBlock(document, position) {
+    const text = document.getText();
+    const lines = text.split('\n');
+    let inStyle = false;
+    for (let i = 0; i <= position.line; i++) {
+        const line = lines[i];
+        // Simple check for style tag open/close
+        if (/<style[^>]*>/i.test(line)) {
+            inStyle = true;
+        }
+        if (/<\/style>/i.test(line)) {
+            inStyle = false;
+        }
+    }
+    return inStyle;
+}
+/**
+ * Register completion provider for control flow snippets
+ * These only trigger when typing '{' followed by specific letters
+ */
+function registerControlFlowCompletions(context) {
+    const controlFlowProvider = vscode.languages.registerCompletionItemProvider('pico', {
+        provideCompletionItems(document, position) {
+            // Don't show control flow snippets inside style blocks
+            if (isInStyleBlock(document, position)) {
+                return undefined;
+            }
+            const lineText = document.lineAt(position).text;
+            const textBeforeCursor = lineText.substring(0, position.character);
+            // Only provide completions if the character immediately before cursor is '{'
+            const lastChar = textBeforeCursor.slice(-1);
+            if (lastChar !== '{') {
+                return undefined;
+            }
+            const completions = [];
+            // {if snippet - use {if as label so it matches when typing {i
+            const ifItem = new vscode.CompletionItem('{if', vscode.CompletionItemKind.Snippet);
+            ifItem.detail = 'Pico if block';
+            ifItem.documentation = new vscode.MarkdownString('Create an if control flow block');
+            ifItem.insertText = new vscode.SnippetString('if ${1:condition}}\n\t$0\n{/if');
+            completions.push(ifItem);
+            // {ife snippet
+            const ifeItem = new vscode.CompletionItem('{ife', vscode.CompletionItemKind.Snippet);
+            ifeItem.detail = 'Pico if-else block';
+            ifeItem.documentation = new vscode.MarkdownString('Create an if-else control flow block');
+            ifeItem.insertText = new vscode.SnippetString('if ${1:condition}}\n\t$2\n{else}\n\t$0\n{/if');
+            completions.push(ifeItem);
+            // {ifeif snippet
+            const ifeifItem = new vscode.CompletionItem('{ifeif', vscode.CompletionItemKind.Snippet);
+            ifeifItem.detail = 'Pico if-else if-else block';
+            ifeifItem.documentation = new vscode.MarkdownString('Create an if-else if-else control flow block');
+            ifeifItem.insertText = new vscode.SnippetString('if ${1:condition}}\n\t$2\n{else if ${3:condition}}\n\t$4\n{else}\n\t$0\n{/if');
+            completions.push(ifeifItem);
+            // {for snippet
+            const forItem = new vscode.CompletionItem('{for', vscode.CompletionItemKind.Snippet);
+            forItem.detail = 'Pico for loop';
+            forItem.documentation = new vscode.MarkdownString('Create a for loop');
+            forItem.insertText = new vscode.SnippetString('for let ${1:item} of ${2:items}}\n\t$0\n{/for');
+            completions.push(forItem);
+            // {e snippet
+            const exprItem = new vscode.CompletionItem('{e', vscode.CompletionItemKind.Snippet);
+            exprItem.detail = 'Pico expression';
+            exprItem.documentation = new vscode.MarkdownString('Create an expression block');
+            exprItem.insertText = new vscode.SnippetString('${1:expression}');
+            completions.push(exprItem);
+            return completions;
+        }
+    }, 
+    // Only trigger on '{' character
+    '{');
+    context.subscriptions.push(controlFlowProvider);
 }
 /**
  * Check if the current cursor position is inside the frontmatter section.
@@ -128,16 +204,12 @@ async function configureFileIcons() {
             const currentAssociations = config.get('files.associations') || {};
             // Only add if not already configured
             if (!currentAssociations['*.pico']) {
-                // Calculate relative path from Material Icons dist folder to our icons
-                // Material Icons loads from: ~/.vscode/extensions/PKief.material-icon-theme-x.x.x/dist/
-                // Our icon is at: ~/.vscode/extensions/plentico.pico-language-x.x.x/icons/pico.svg
                 const materialPath = materialIconTheme.extensionPath;
                 const ourIconPath = path.join(extensionPath, 'icons', 'pico');
-                // Compute relative path from Material Icons dist folder to our icon
-                const relativePath = path.relative(path.join(materialPath, 'dist'), ourIconPath).replace(/\\/g, '/'); // Use forward slashes for cross-platform
+                const relativePath = path.relative(path.join(materialPath, 'dist'), ourIconPath).replace(/\\/g, '/');
                 const newAssociations = {
                     ...currentAssociations,
-                    '*.pico': relativePath // e.g., "../../plentico.pico-language-0.0.5/icons/pico"
+                    '*.pico': relativePath
                 };
                 await config.update('files.associations', newAssociations, vscode.ConfigurationTarget.Global);
                 vscode.window.showInformationMessage('Pico: Configured Material Icon Theme with custom Pico icon. Restart VS Code to apply.');
@@ -154,7 +226,6 @@ async function configureFileIcons() {
         try {
             const config = vscode.workspace.getConfiguration('vsicons');
             const associations = config.get('associations.files') || [];
-            // Only add if not already configured
             const hasPico = associations.some((a) => a.extensions?.includes('pico'));
             if (!hasPico) {
                 associations.push({
@@ -171,7 +242,6 @@ async function configureFileIcons() {
         }
         return;
     }
-    // No supported icon theme found
     vscode.window.showInformationMessage('Pico: No supported icon theme detected. Install Material Icon Theme or vscode-icons for .pico file icons.');
 }
 async function configureWordBasedSuggestions() {
@@ -180,7 +250,6 @@ async function configureWordBasedSuggestions() {
     const editorConfig = vscode.workspace.getConfiguration('editor', { languageId: 'pico' });
     const currentValue = editorConfig.get('wordBasedSuggestions');
     const targetValue = enableWordBased ? 'matchingDocuments' : 'off';
-    // Only update if the value differs from what we want
     if (currentValue !== targetValue) {
         try {
             await editorConfig.update('wordBasedSuggestions', targetValue, vscode.ConfigurationTarget.Global, true);
