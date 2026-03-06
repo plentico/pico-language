@@ -9,9 +9,9 @@
     "description": "Pico frontmatter block"
   },
   "Component Self-Closing": {
-    "prefix": ["<Comp", "<C"],
+    "prefix": ["<Comp"],
     "body": [
-      "<${1:Component} ${2:prop}={${3:value}} />"
+      "<${1:Component} ${2:prop}={${3:value}} /"
     ],
     "description": "Pico self-closing component"
   },
@@ -20,14 +20,14 @@
     "body": [
       "<${1:Component} ${2:prop}={${3:value}}>",
       "\t$0",
-      "</${1:Component}>"
+      "</${1:Component}"
     ],
     "description": "Pico component with children"
   },
   "Dynamic Component": {
     "prefix": ["<=\"", "<="],
     "body": [
-      "<=\"${1:./component.html}\" ${2:prop}={${3:value}} />"
+      "<=\"${1:./component.pico}\" ${2:prop}={${3:value}} /"
     ],
     "description": "Pico dynamic component"
   },
