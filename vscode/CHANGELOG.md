@@ -2,6 +2,12 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.9] - 2026-03-06
+
+### Added
+- Treat content inside `<style>` tags as CSS, enabling CSS autocomplete
+- Limit "Import" and "Prop Declaration" snippets to only frontmatter / fence
+
 ## [0.0.8] - 2026-02-21
 
 ### Added

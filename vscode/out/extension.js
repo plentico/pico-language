@@ -48,6 +48,8 @@ function activate(context) {
     }
     // Configure word-based suggestions
     configureWordBasedSuggestions();
+    // Register frontmatter completion provider
+    registerFrontmatterCompletions(context);
     // Listen for configuration changes
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('pico.enableWordBasedSuggestions')) {
@@ -56,6 +58,66 @@ function activate(context) {
     }));
     // Register command to manually configure icons
     context.subscriptions.push(vscode.commands.registerCommand('pico.configureFileIcons', configureFileIcons));
+}
+/**
+ * Register completion provider for frontmatter-specific snippets (import, prop)
+ * These should only appear when cursor is inside the frontmatter section (between --- lines)
+ */
+function registerFrontmatterCompletions(context) {
+    const frontmatterProvider = vscode.languages.registerCompletionItemProvider('pico', {
+        provideCompletionItems(document, position) {
+            if (!isInFrontmatter(document, position)) {
+                return undefined;
+            }
+            const completions = [];
+            // Import snippet
+            const importItem = new vscode.CompletionItem('import', vscode.CompletionItemKind.Snippet);
+            importItem.detail = 'Pico import statement';
+            importItem.documentation = new vscode.MarkdownString('Import a component from another file');
+            importItem.insertText = new vscode.SnippetString('import ${1:Component} from "./${2:component}.html";');
+            completions.push(importItem);
+            // Prop snippet
+            const propItem = new vscode.CompletionItem('prop', vscode.CompletionItemKind.Snippet);
+            propItem.detail = 'Pico prop declaration';
+            propItem.documentation = new vscode.MarkdownString('Declare a component prop with optional default value');
+            propItem.insertText = new vscode.SnippetString('prop ${1:name}${2: = ${3:default}};');
+            completions.push(propItem);
+            return completions;
+        }
+    }, 
+    // Trigger characters
+    'i', 'p');
+    context.subscriptions.push(frontmatterProvider);
+}
+/**
+ * Check if the current cursor position is inside the frontmatter section.
+ * Frontmatter is defined as content between two --- lines at the start of the file.
+ */
+function isInFrontmatter(document, position) {
+    const text = document.getText();
+    const lines = text.split('\n');
+    // Find the first --- line
+    let frontmatterStart = -1;
+    let frontmatterEnd = -1;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line === '---') {
+            if (frontmatterStart === -1) {
+                frontmatterStart = i;
+            }
+            else {
+                frontmatterEnd = i;
+                break;
+            }
+        }
+    }
+    // If we didn't find both start and end markers, not in frontmatter
+    if (frontmatterStart === -1 || frontmatterEnd === -1) {
+        return false;
+    }
+    // Check if current position is between the two markers
+    const currentLine = position.line;
+    return currentLine > frontmatterStart && currentLine < frontmatterEnd;
 }
 async function configureFileIcons() {
     // Check for Material Icon Theme (most popular)

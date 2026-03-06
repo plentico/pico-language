@@ -57,20 +57,6 @@
     ],
     "description": "Pico frontmatter block"
   },
-  "Import": {
-    "prefix": ["import"],
-    "body": [
-      "import ${1:Component} from \"./${2:component}.html\";"
-    ],
-    "description": "Pico import statement"
-  },
-  "Prop Declaration": {
-    "prefix": ["prop"],
-    "body": [
-      "prop ${1:name}${2: = ${3:default}};"
-    ],
-    "description": "Pico prop declaration"
-  },
   "Component Self-Closing": {
     "prefix": ["<Comp", "<C"],
     "body": [
