@@ -37,9 +37,16 @@ exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const path = __importStar(require("path"));
+const html = __importStar(require("vscode-html-languageservice"));
+const css = __importStar(require("vscode-css-languageservice"));
 let extensionPath = '';
+let htmlLanguageService;
+let cssLanguageService;
 function activate(context) {
     extensionPath = context.extensionPath;
+    // Initialize language services
+    htmlLanguageService = html.getLanguageService();
+    cssLanguageService = css.getCSSLanguageService();
     // Check if we should configure file icons
     const config = vscode.workspace.getConfiguration('pico');
     const autoConfigIcons = config.get('autoConfigureFileIcons', true);
@@ -48,9 +55,13 @@ function activate(context) {
     }
     // Configure word-based suggestions
     configureWordBasedSuggestions();
+    // Configure HTML/CSS language features for Pico files
+    configureLanguageFeatures();
     // Register completion providers
     registerFrontmatterCompletions(context);
     registerControlFlowCompletions(context);
+    registerHTMLProviders(context);
+    registerCSSProviders(context);
     // Listen for configuration changes
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('pico.enableWordBasedSuggestions')) {
@@ -116,8 +127,8 @@ function isInStyleBlock(document, position) {
 function registerControlFlowCompletions(context) {
     const controlFlowProvider = vscode.languages.registerCompletionItemProvider('pico', {
         provideCompletionItems(document, position) {
-            // Don't show control flow snippets inside style blocks
-            if (isInStyleBlock(document, position)) {
+            // Don't show control flow snippets inside style blocks or frontmatter
+            if (isInStyleBlock(document, position) || isInFrontmatter(document, position)) {
                 return undefined;
             }
             const lineText = document.lineAt(position).text;
@@ -257,6 +268,220 @@ async function configureWordBasedSuggestions() {
         catch (err) {
             console.error('Pico: Failed to configure word-based suggestions', err);
         }
+    }
+}
+/**
+ * Register HTML completion providers for Pico files.
+ * This provides HTML tag suggestions and closing tag completion.
+ */
+function registerHTMLProviders(context) {
+    // Register HTML completion provider
+    const htmlCompletionProvider = vscode.languages.registerCompletionItemProvider('pico', {
+        provideCompletionItems(document, position) {
+            console.log('HTML completion provider triggered at position:', position.line, position.character);
+            // Don't provide completions in frontmatter or style blocks
+            if (isInFrontmatter(document, position)) {
+                console.log('In frontmatter, skipping HTML completions');
+                return undefined;
+            }
+            if (isInStyleBlock(document, position)) {
+                console.log('In style block, skipping HTML completions');
+                return undefined;
+            }
+            const lineText = document.lineAt(position).text;
+            const textBeforeCursor = lineText.substring(0, position.character);
+            // Check if we're typing a closing tag first
+            const typingClosingTag = textBeforeCursor.endsWith('</');
+            const justTypedLessThan = textBeforeCursor.match(/<\s*$/);
+            if (typingClosingTag || justTypedLessThan) {
+                const openTag = findOpenHTMLTag(document, position);
+                if (openTag) {
+                    const completion = new vscode.CompletionItem(typingClosingTag ? openTag : `/${openTag}`, vscode.CompletionItemKind.Property);
+                    completion.detail = `Close <${openTag}> tag`;
+                    completion.insertText = typingClosingTag ? `${openTag}>` : `/${openTag}>`;
+                    completion.sortText = '!';
+                    completion.preselect = true;
+                    // Also return HTML completions alongside closing tag
+                    const text = document.getText();
+                    const htmlDocument = htmlLanguageService.parseHTMLDocument(html.TextDocument.create(document.uri.toString(), 'html', document.version, text));
+                    const htmlCompletions = htmlLanguageService.doComplete(html.TextDocument.create(document.uri.toString(), 'html', document.version, text), position, htmlDocument);
+                    const results = [completion];
+                    if (htmlCompletions && htmlCompletions.items.length > 0) {
+                        const htmlItems = htmlCompletions.items.map(item => {
+                            const comp = new vscode.CompletionItem(item.label, item.kind);
+                            comp.detail = item.detail;
+                            if (item.documentation) {
+                                if (typeof item.documentation === 'string') {
+                                    comp.documentation = new vscode.MarkdownString(item.documentation);
+                                }
+                                else if ('kind' in item.documentation && item.documentation.kind === 'markdown') {
+                                    comp.documentation = new vscode.MarkdownString(item.documentation.value);
+                                }
+                            }
+                            comp.sortText = item.sortText;
+                            comp.filterText = item.filterText;
+                            comp.insertText = item.insertText || item.label;
+                            return comp;
+                        });
+                        results.push(...htmlItems);
+                    }
+                    return results;
+                }
+            }
+            // Regular HTML completions
+            const text = document.getText();
+            const htmlDocument = htmlLanguageService.parseHTMLDocument(html.TextDocument.create(document.uri.toString(), 'html', document.version, text));
+            // Get completions from HTML language service
+            const htmlCompletions = htmlLanguageService.doComplete(html.TextDocument.create(document.uri.toString(), 'html', document.version, text), position, htmlDocument);
+            console.log('HTML completions found:', htmlCompletions?.items.length || 0);
+            if (!htmlCompletions || htmlCompletions.items.length === 0) {
+                console.log('No HTML completions available');
+                return undefined;
+            }
+            // Convert HTML language service completions to VS Code completions
+            const results = htmlCompletions.items.map(item => {
+                const completion = new vscode.CompletionItem(item.label, item.kind);
+                completion.detail = item.detail;
+                if (item.documentation) {
+                    if (typeof item.documentation === 'string') {
+                        completion.documentation = new vscode.MarkdownString(item.documentation);
+                    }
+                    else if ('kind' in item.documentation && item.documentation.kind === 'markdown') {
+                        completion.documentation = new vscode.MarkdownString(item.documentation.value);
+                    }
+                }
+                completion.sortText = item.sortText;
+                completion.filterText = item.filterText;
+                completion.insertText = item.insertText || item.label;
+                return completion;
+            });
+            console.log('Returning', results.length, 'HTML completion items');
+            return results;
+        }
+    }, '<', '/', 'd', 'h', 'p', 's', 'a', 'b', 'i', 'u', 'l', 'f', 't', 'm', 'n', 'o', 'c', 'e', 'g', 'r', 'v', 'w');
+    console.log('HTML completion provider registered');
+    context.subscriptions.push(htmlCompletionProvider);
+}
+/**
+ * Register CSS completion providers for Pico files.
+ * This provides CSS property and value suggestions inside style blocks.
+ */
+function registerCSSProviders(context) {
+    const cssCompletionProvider = vscode.languages.registerCompletionItemProvider('pico', {
+        provideCompletionItems(document, position) {
+            // Only provide completions inside style blocks
+            if (!isInStyleBlock(document, position)) {
+                return undefined;
+            }
+            // Extract just the CSS content from the style block
+            const text = document.getText();
+            const lines = text.split('\n');
+            let styleStart = -1;
+            let styleContent = '';
+            let lineOffset = 0;
+            for (let i = 0; i < lines.length; i++) {
+                if (/<style[^>]*>/i.test(lines[i])) {
+                    styleStart = i;
+                    lineOffset = i + 1;
+                    continue;
+                }
+                if (styleStart !== -1) {
+                    if (/<\/style>/i.test(lines[i])) {
+                        break;
+                    }
+                    styleContent += lines[i] + '\n';
+                }
+            }
+            if (styleStart === -1) {
+                return undefined;
+            }
+            // Adjust position relative to CSS content
+            const cssPosition = new vscode.Position(position.line - lineOffset, position.character);
+            // Create CSS document
+            const cssDocument = css.TextDocument.create(document.uri.toString() + '.css', 'css', document.version, styleContent);
+            const stylesheet = cssLanguageService.parseStylesheet(cssDocument);
+            // Get CSS completions
+            const cssCompletions = cssLanguageService.doComplete(cssDocument, cssPosition, stylesheet);
+            if (!cssCompletions || cssCompletions.items.length === 0) {
+                return undefined;
+            }
+            // Convert CSS completions to VS Code completions
+            return cssCompletions.items.map((item) => {
+                const completion = new vscode.CompletionItem(item.label, item.kind);
+                completion.detail = item.detail;
+                if (item.documentation) {
+                    if (typeof item.documentation === 'string') {
+                        completion.documentation = new vscode.MarkdownString(item.documentation);
+                    }
+                    else if ('kind' in item.documentation && item.documentation.kind === 'markdown') {
+                        completion.documentation = new vscode.MarkdownString(item.documentation.value);
+                    }
+                }
+                completion.sortText = item.sortText;
+                completion.filterText = item.filterText;
+                completion.insertText = item.insertText || item.label;
+                return completion;
+            });
+        }
+    }, ':', ' ', '\n' // Trigger characters for CSS
+    );
+    context.subscriptions.push(cssCompletionProvider);
+}
+/**
+ * Find the most recent unclosed HTML tag before the current position
+ */
+function findOpenHTMLTag(document, position) {
+    const text = document.getText(new vscode.Range(new vscode.Position(0, 0), position));
+    // Stack to track open tags
+    const stack = [];
+    // Match opening and closing tags (ignore self-closing and Pico components)
+    const tagRegex = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
+    let match;
+    while ((match = tagRegex.exec(text)) !== null) {
+        const fullMatch = match[0];
+        const tagName = match[1].toLowerCase();
+        // Skip self-closing tags
+        if (fullMatch.endsWith('/>')) {
+            continue;
+        }
+        // Skip void/self-closing HTML elements
+        const voidElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+            'link', 'meta', 'param', 'source', 'track', 'wbr'];
+        if (voidElements.includes(tagName)) {
+            continue;
+        }
+        // Closing tag
+        if (fullMatch.startsWith('</')) {
+            // Pop from stack if it matches
+            if (stack.length > 0 && stack[stack.length - 1] === tagName) {
+                stack.pop();
+            }
+        }
+        else {
+            // Opening tag
+            stack.push(tagName);
+        }
+    }
+    // Return the most recent unclosed tag
+    return stack.length > 0 ? stack[stack.length - 1] : null;
+}
+/**
+ * Configure HTML and CSS language features for Pico files.
+ * This enables HTML tag completion and CSS completions.
+ */
+async function configureLanguageFeatures() {
+    try {
+        // Disable Emmet for Pico files (users prefer regular HTML suggestions)
+        const emmetConfig = vscode.workspace.getConfiguration('emmet');
+        const includeLanguages = emmetConfig.get('includeLanguages') || {};
+        // Remove pico from Emmet if it was added
+        if (includeLanguages['pico']) {
+            delete includeLanguages['pico'];
+            await emmetConfig.update('includeLanguages', includeLanguages, vscode.ConfigurationTarget.Global);
+        }
+    }
+    catch (err) {
+        console.error('Pico: Failed to configure language features', err);
     }
 }
 function deactivate() { }

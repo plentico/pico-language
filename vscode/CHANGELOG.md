@@ -2,6 +2,21 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.10] - 2026-03-07
+
+### Added
+- **HTML tag completion** - Type `<h` and get suggestions for `<h1>`, `<h2>`, etc.
+- **HTML closing tag auto-completion** - Type `<` after content and get automatic closing tag suggestions
+- **CSS completion inside `<style>` blocks** - Full CSS IntelliSense support
+- **Emmet abbreviations** - Type `div.container` and expand with Tab for HTML shortcuts
+- Configured `embeddedLanguages` to properly enable HTML and CSS language features
+- Added `configurationDefaults` for better editor suggestions in Pico files
+
+### Fixed
+- HTML tag suggestions now work properly in `.pico` files
+- CSS autocomplete now functions correctly inside `<style>` tags
+- Closing tags are now automatically suggested after typing opening tags
+
 ## [0.0.9] - 2026-03-06
 
 ### Added

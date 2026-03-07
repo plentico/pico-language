@@ -5,3 +5,9 @@ src/**
 tsconfig.json
 **/*.map
 node_modules/**
+!node_modules/vscode-html-languageservice/**
+!node_modules/vscode-css-languageservice/**
+!node_modules/vscode-languageserver-types/**
+!node_modules/vscode-languageserver-textdocument/**
+!node_modules/vscode-uri/**
+!node_modules/@vscode/**

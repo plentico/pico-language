@@ -2,7 +2,7 @@
   "name": "pico-language",
   "displayName": "Pico Templates by Plentico",
   "description": "Syntax highlighting for Pico template files - a component-based templating system",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "publisher": "plentico",
   "license": "MIT",
   "icon": "icon.png",
@@ -39,8 +39,14 @@
     "languages": [
       {
         "id": "pico",
-        "aliases": ["Pico", "pico"],
-        "extensions": [".pico", ".pico.html"],
+        "aliases": [
+          "Pico",
+          "pico"
+        ],
+        "extensions": [
+          ".pico",
+          ".pico.html"
+        ],
         "configuration": "./language-configuration.json",
         "icon": {
           "light": "./icons/pico.svg",
@@ -57,7 +63,8 @@
           "source.css": "css",
           "source.js": "javascript",
           "meta.embedded.block.css": "css",
-          "meta.embedded.block.javascript": "javascript"
+          "meta.embedded.block.javascript": "javascript",
+          "text.html.basic": "html"
         }
       }
     ],
@@ -67,6 +74,20 @@
         "path": "./snippets/pico.json"
       }
     ],
+    "configurationDefaults": {
+      "[pico]": {
+        "editor.suggest.insertMode": "replace",
+        "editor.quickSuggestions": {
+          "other": "on",
+          "comments": false,
+          "strings": true
+        },
+        "html.autoClosingTags": false,
+        "editor.autoClosingTags": false,
+        "emmet.showExpandedAbbreviation": "never",
+        "emmet.showSuggestionsAsSnippets": false
+      }
+    },
     "configuration": {
       "title": "Pico",
       "properties": {
@@ -79,6 +100,11 @@
           "type": "boolean",
           "default": false,
           "description": "Enable word-based suggestions (abc autocomplete) for Pico files. Disabled by default to reduce noise."
+        },
+        "pico.html.suggest.html5": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable HTML5 tag suggestions in Pico files"
         }
       }
     },
@@ -98,5 +124,10 @@
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.75.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@vscode/l10n": "^0.0.18",
+    "vscode-css-languageservice": "^6.3.10",
+    "vscode-html-languageservice": "^5.6.2"
   }
 }
