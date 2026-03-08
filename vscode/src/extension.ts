@@ -10,13 +10,9 @@ let cssLanguageService: css.LanguageService;
 export function activate(context: vscode.ExtensionContext) {
     extensionPath = context.extensionPath;
 
-    console.log('Pico extension activating...');
-
     // Initialize language services
     htmlLanguageService = html.getLanguageService();
     cssLanguageService = css.getCSSLanguageService();
-
-    console.log('Language services initialized');
 
     // Check if we should configure file icons
     const config = vscode.workspace.getConfiguration('pico');
@@ -37,8 +33,6 @@ export function activate(context: vscode.ExtensionContext) {
     registerControlFlowCompletions(context);
     registerHTMLProviders(context);
     registerCSSProviders(context);
-
-    console.log('Pico extension activated successfully');
 
     // Listen for configuration changes
     context.subscriptions.push(

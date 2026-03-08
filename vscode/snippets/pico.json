@@ -11,7 +11,7 @@
   "Component Self-Closing": {
     "prefix": ["<Comp"],
     "body": [
-      "<${1:Component} ${2:prop}={${3:value}} /"
+      "<${1:Component} ${2:prop}={${3:value}} />"
     ],
     "description": "Pico self-closing component"
   },
@@ -20,14 +20,14 @@
     "body": [
       "<${1:Component} ${2:prop}={${3:value}}>",
       "\t$0",
-      "</${1:Component}"
+      "</${1:Component}>"
     ],
     "description": "Pico component with children"
   },
   "Dynamic Component": {
-    "prefix": ["<=\"", "<="],
+    "prefix": ["<="],
     "body": [
-      "<=\"${1:./component.pico}\" ${2:prop}={${3:value}} /"
+      "<=\"${1:./component}.pico\" ${2:prop}={${3:value}} />"
     ],
     "description": "Pico dynamic component"
   },
@@ -36,7 +36,7 @@
     "body": [
       "<style>",
       "\t$0",
-      "</style"
+      "</style>"
     ],
     "description": "Pico style block"
   },
@@ -45,7 +45,7 @@
     "body": [
       "<script>",
       "\t$0",
-      "</script"
+      "</script>"
     ],
     "description": "Pico script block"
   }
