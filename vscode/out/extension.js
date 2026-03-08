@@ -62,6 +62,8 @@ function activate(context) {
     registerControlFlowCompletions(context);
     registerHTMLProviders(context);
     registerCSSProviders(context);
+    // Register CSS diagnostics for unused selectors
+    registerCSSDiagnostics(context);
     // Listen for configuration changes
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('pico.enableWordBasedSuggestions')) {
@@ -483,6 +485,176 @@ async function configureLanguageFeatures() {
     catch (err) {
         console.error('Pico: Failed to configure language features', err);
     }
+}
+/**
+ * Register CSS diagnostics to warn about unused selectors
+ */
+function registerCSSDiagnostics(context) {
+    const diagnosticCollection = vscode.languages.createDiagnosticCollection('pico-css');
+    context.subscriptions.push(diagnosticCollection);
+    // Function to update diagnostics
+    function updateDiagnostics(document) {
+        if (document.languageId !== 'pico') {
+            return;
+        }
+        const diagnostics = [];
+        const text = document.getText();
+        const lines = text.split('\n');
+        // Extract HTML content (everything outside frontmatter and style/script blocks)
+        let htmlContent = '';
+        let inFrontmatter = false;
+        let inStyle = false;
+        let inScript = false;
+        for (const line of lines) {
+            const trimmed = line.trim();
+            // Track frontmatter
+            if (trimmed === '---') {
+                inFrontmatter = !inFrontmatter;
+                continue;
+            }
+            // Track style blocks
+            if (/<style[^>]*>/i.test(line)) {
+                inStyle = true;
+                continue;
+            }
+            if (/<\/style>/i.test(line)) {
+                inStyle = false;
+                continue;
+            }
+            // Track script blocks
+            if (/<script[^>]*>/i.test(line)) {
+                inScript = true;
+                continue;
+            }
+            if (/<\/script>/i.test(line)) {
+                inScript = false;
+                continue;
+            }
+            // Collect HTML content
+            if (!inFrontmatter && !inStyle && !inScript) {
+                htmlContent += line + '\n';
+            }
+        }
+        // Extract CSS content and line numbers
+        const cssBlocks = [];
+        let styleStart = -1;
+        let styleContent = '';
+        for (let i = 0; i < lines.length; i++) {
+            if (/<style[^>]*>/i.test(lines[i])) {
+                styleStart = i + 1;
+                styleContent = '';
+                continue;
+            }
+            if (styleStart !== -1) {
+                if (/<\/style>/i.test(lines[i])) {
+                    cssBlocks.push({ content: styleContent, startLine: styleStart });
+                    styleStart = -1;
+                }
+                else {
+                    styleContent += lines[i] + '\n';
+                }
+            }
+        }
+        // Extract all HTML tags from the content
+        const htmlTags = new Set();
+        const tagRegex = /<([a-z][a-z0-9]*)\b[^>]*>/gi;
+        let match;
+        while ((match = tagRegex.exec(htmlContent)) !== null) {
+            htmlTags.add(match[1].toLowerCase());
+        }
+        // Extract all class names from HTML
+        const htmlClasses = new Set();
+        const classRegex = /class\s*=\s*["']([^"']+)["']/gi;
+        while ((match = classRegex.exec(htmlContent)) !== null) {
+            const classes = match[1].split(/\s+/);
+            classes.forEach(cls => {
+                if (cls)
+                    htmlClasses.add(cls);
+            });
+        }
+        // Extract all IDs from HTML
+        const htmlIds = new Set();
+        const idRegex = /id\s*=\s*["']([^"']+)["']/gi;
+        while ((match = idRegex.exec(htmlContent)) !== null) {
+            if (match[1])
+                htmlIds.add(match[1]);
+        }
+        // Analyze each CSS block
+        for (const block of cssBlocks) {
+            const cssLines = block.content.split('\n');
+            for (let i = 0; i < cssLines.length; i++) {
+                const line = cssLines[i];
+                const lineNumber = block.startLine + i;
+                // Match CSS selectors (simple approach - matches selector before {)
+                const selectorMatch = line.match(/^\s*([^{]+?)\s*\{/);
+                if (selectorMatch) {
+                    const fullSelector = selectorMatch[1].trim();
+                    // Split by comma for multiple selectors
+                    const selectors = fullSelector.split(',').map(s => s.trim());
+                    for (const selector of selectors) {
+                        // Skip pseudo-classes, pseudo-elements, and complex selectors for now
+                        if (selector.includes(':') || selector.includes('[')) {
+                            continue;
+                        }
+                        // Extract the base selector (first part before space, >, +, ~)
+                        const baseSelector = selector.split(/[\s>+~]/)[0].trim();
+                        if (!baseSelector) {
+                            continue;
+                        }
+                        let found = false;
+                        // Check if it's a tag selector
+                        if (/^[a-z][a-z0-9]*$/i.test(baseSelector)) {
+                            found = htmlTags.has(baseSelector.toLowerCase());
+                        }
+                        // Check if it's a class selector
+                        else if (baseSelector.startsWith('.')) {
+                            const className = baseSelector.substring(1);
+                            found = htmlClasses.has(className);
+                        }
+                        // Check if it's an ID selector
+                        else if (baseSelector.startsWith('#')) {
+                            const idName = baseSelector.substring(1);
+                            found = htmlIds.has(idName);
+                        }
+                        // Universal selector or other complex selectors
+                        else if (baseSelector === '*') {
+                            found = true;
+                        }
+                        if (!found) {
+                            // Find the position of the selector in the line
+                            const selectorIndex = line.indexOf(baseSelector);
+                            if (selectorIndex !== -1) {
+                                const range = new vscode.Range(new vscode.Position(lineNumber, selectorIndex), new vscode.Position(lineNumber, selectorIndex + baseSelector.length));
+                                const diagnostic = new vscode.Diagnostic(range, `CSS selector '${baseSelector}' does not match any element in this component`, vscode.DiagnosticSeverity.Warning);
+                                diagnostic.source = 'pico-css';
+                                diagnostic.code = 'unused-selector';
+                                diagnostics.push(diagnostic);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        diagnosticCollection.set(document.uri, diagnostics);
+    }
+    // Update diagnostics on document change
+    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(e => {
+        if (e.document.languageId === 'pico') {
+            updateDiagnostics(e.document);
+        }
+    }));
+    // Update diagnostics on document open
+    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(document => {
+        if (document.languageId === 'pico') {
+            updateDiagnostics(document);
+        }
+    }));
+    // Update diagnostics for all open pico files
+    vscode.workspace.textDocuments.forEach(document => {
+        if (document.languageId === 'pico') {
+            updateDiagnostics(document);
+        }
+    });
 }
 function deactivate() { }
 //# sourceMappingURL=extension.js.map
