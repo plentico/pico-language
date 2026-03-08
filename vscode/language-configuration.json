@@ -37,5 +37,13 @@
     "increaseIndentPattern": "<(?!\\?|(?:area|base|br|col|frame|hr|html|img|input|keygen|link|menuitem|meta|param|source|track|wbr|script|style)\\b|[^>]*\\/>)([-_\\.A-Za-z0-9]+)(?=\\s|>)\\b[^>]*>(?!.*<\\/\\1>)|<!--(?!.*-->)|\\{[^}\"']*$|\\{\\s*(if|for)",
     "decreaseIndentPattern": "^\\s*(<\\/[-_\\.A-Za-z0-9]+\\b[^>]*>|-?-->|\\}|\\{\\/)"
   },
+  "onEnterRules": [
+    {
+      "beforeText": "^\\s*<\\/[a-zA-Z][a-zA-Z0-9]*>\\s*$",
+      "action": {
+        "indent": "none"
+      }
+    }
+  ],
   "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\$\\^\\&\\*\\(\\)\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\s]+)"
 }

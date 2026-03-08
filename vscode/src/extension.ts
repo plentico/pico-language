@@ -37,6 +37,9 @@ export function activate(context: vscode.ExtensionContext) {
     // Register CSS diagnostics for unused selectors
     registerCSSDiagnostics(context);
 
+    // Register auto-indent fixer for closing tags
+    registerAutoIndentFixer(context);
+
     // Listen for configuration changes
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(e => {
@@ -800,6 +803,92 @@ function registerCSSDiagnostics(context: vscode.ExtensionContext) {
             updateDiagnostics(document);
         }
     });
+}
+
+/**
+ * Register auto-indent fixer for closing tags inserted by completions
+ */
+function registerAutoIndentFixer(context: vscode.ExtensionContext) {
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeTextDocument(event => {
+            if (event.document.languageId !== 'pico' || event.contentChanges.length === 0) {
+                return;
+            }
+
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document !== event.document) {
+                return;
+            }
+
+            // Use setTimeout to let the completion finish
+            setTimeout(() => {
+                const document = editor.document;
+                const position = editor.selection.active;
+                const line = document.lineAt(position.line);
+                const lineText = line.text;
+
+                // Check if this line has a closing tag
+                const closingTagMatch = lineText.match(/^(\s*)<\/([a-z][a-z0-9]*)\>$/i);
+                if (!closingTagMatch) {
+                    return;
+                }
+
+                const currentIndent = closingTagMatch[1];
+                const tagName = closingTagMatch[2].toLowerCase();
+
+                // Find matching opening tag's indentation
+                let openingIndent: string | null = null;
+                const stack: string[] = [];
+
+                for (let i = position.line - 1; i >= 0; i--) {
+                    const scanLine = document.lineAt(i).text;
+                    const tagRegex = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
+                    let match;
+                    const matches: Array<{ isClosing: boolean; tag: string }> = [];
+
+                    while ((match = tagRegex.exec(scanLine)) !== null) {
+                        const fullMatch = match[0];
+                        const tag = match[1].toLowerCase();
+
+                        if (fullMatch.endsWith('/>')) continue;
+
+                        const voidElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+                            'link', 'meta', 'param', 'source', 'track', 'wbr'];
+                        if (voidElements.includes(tag)) continue;
+
+                        matches.push({ isClosing: fullMatch.startsWith('</'), tag });
+                    }
+
+                    for (let j = matches.length - 1; j >= 0; j--) {
+                        const { isClosing, tag } = matches[j];
+                        if (isClosing) {
+                            stack.push(tag);
+                        } else {
+                            if (stack.length > 0 && stack[stack.length - 1] === tag) {
+                                stack.pop();
+                            } else if (tag === tagName) {
+                                openingIndent = scanLine.match(/^(\s*)/)?.[1] || '';
+                                break;
+                            }
+                        }
+                    }
+
+                    if (openingIndent !== null) break;
+                }
+
+                // Fix indentation if needed
+                if (openingIndent !== null && openingIndent !== currentIndent) {
+                    editor.edit(editBuilder => {
+                        const range = new vscode.Range(
+                            new vscode.Position(position.line, 0),
+                            new vscode.Position(position.line, currentIndent.length)
+                        );
+                        editBuilder.replace(range, openingIndent);
+                    }, { undoStopBefore: false, undoStopAfter: false });
+                }
+            }, 10); // Small delay to ensure completion has finished
+        })
+    );
 }
 
 export function deactivate() {}

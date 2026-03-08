@@ -2,7 +2,7 @@
   "name": "pico-language",
   "displayName": "Pico Templates by Plentico",
   "description": "Syntax highlighting for Pico template files - a component-based templating system",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "publisher": "plentico",
   "license": "MIT",
   "icon": "icon.png",

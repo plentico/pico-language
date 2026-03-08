@@ -2,6 +2,14 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.11] - 2026-03-08
+
+### Fixed
+- Unident closing HTML tags when completing Emmet suggestions
+- Autoclose single and double quotes when setting attribute values on HTML elements
+- Display warnings when CSS selectors in `<style>` tags aren't found in the component
+- Fix Comp closing tags now that angle brackets `<` are no longer autoclosing
+
 ## [0.0.10] - 2026-03-07
 
 ### Added
