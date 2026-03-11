@@ -871,7 +871,8 @@ function registerCSSDiagnostics(context: vscode.ExtensionContext) {
         selectorPart: string,
         message: string
     ) {
-        const selectorIndex = line.indexOf(selectorPart);
+        // Use lastIndexOf to highlight the last occurrence for cases like "span span"
+        const selectorIndex = line.lastIndexOf(selectorPart);
         
         if (selectorIndex !== -1) {
             const range = new vscode.Range(

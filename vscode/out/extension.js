@@ -714,7 +714,8 @@ function registerCSSDiagnostics(context) {
      * Create a diagnostic for an unmatched selector part
      */
     function createDiagnostic(diagnostics, line, lineNumber, selectorPart, message) {
-        const selectorIndex = line.indexOf(selectorPart);
+        // Use lastIndexOf to highlight the last occurrence for cases like "span span"
+        const selectorIndex = line.lastIndexOf(selectorPart);
         if (selectorIndex !== -1) {
             const range = new vscode.Range(new vscode.Position(lineNumber, selectorIndex), new vscode.Position(lineNumber, selectorIndex + selectorPart.length));
             const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Warning);
