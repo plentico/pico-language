@@ -2,6 +2,13 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.14] - 2026-03-11
+
+### Fixed
+- Fix bug that was warning compound selectors that start with a valid #ID as being unmatched
+- Auto-indent after opening `<html>` and `<style>` tags
+- Only trigger fence snippet when typing "---" and do not trigger on the word "fence" itself
+
 ## [0.0.13] - 2026-03-11
 
 ### Added

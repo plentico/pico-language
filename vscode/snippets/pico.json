@@ -1,6 +1,6 @@
 {
   "Frontmatter": {
-    "prefix": ["---", "fence"],
+    "prefix": ["---"],
     "body": [
       "---",
       "$0",
