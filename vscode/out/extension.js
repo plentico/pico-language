@@ -598,39 +598,42 @@ function registerCSSDiagnostics(context) {
                         if (selector.includes(':') || selector.includes('[')) {
                             continue;
                         }
-                        // Extract the base selector (first part before space, >, +, ~)
-                        const baseSelector = selector.split(/[\s>+~]/)[0].trim();
-                        if (!baseSelector) {
+                        // Split selector by combinators (space, >, +, ~) to get all parts
+                        const selectorParts = selector.split(/[\s>+~]/).map(s => s.trim()).filter(s => s.length > 0);
+                        if (selectorParts.length === 0) {
                             continue;
                         }
-                        let found = false;
-                        // Check if it's a tag selector
-                        if (/^[a-z][a-z0-9]*$/i.test(baseSelector)) {
-                            found = htmlTags.has(baseSelector.toLowerCase());
-                        }
-                        // Check if it's a class selector
-                        else if (baseSelector.startsWith('.')) {
-                            const className = baseSelector.substring(1);
-                            found = htmlClasses.has(className);
-                        }
-                        // Check if it's an ID selector
-                        else if (baseSelector.startsWith('#')) {
-                            const idName = baseSelector.substring(1);
-                            found = htmlIds.has(idName);
-                        }
-                        // Universal selector or other complex selectors
-                        else if (baseSelector === '*') {
-                            found = true;
-                        }
-                        if (!found) {
-                            // Find the position of the selector in the line
-                            const selectorIndex = line.indexOf(baseSelector);
-                            if (selectorIndex !== -1) {
-                                const range = new vscode.Range(new vscode.Position(lineNumber, selectorIndex), new vscode.Position(lineNumber, selectorIndex + baseSelector.length));
-                                const diagnostic = new vscode.Diagnostic(range, `CSS selector '${baseSelector}' does not match any element in this component`, vscode.DiagnosticSeverity.Warning);
-                                diagnostic.source = 'pico-css';
-                                diagnostic.code = 'unused-selector';
-                                diagnostics.push(diagnostic);
+                        // Check each part of the selector
+                        for (const selectorPart of selectorParts) {
+                            let found = false;
+                            // Check if it's a tag selector
+                            if (/^[a-z][a-z0-9]*$/i.test(selectorPart)) {
+                                found = htmlTags.has(selectorPart.toLowerCase());
+                            }
+                            // Check if it's a class selector
+                            else if (selectorPart.startsWith('.')) {
+                                const className = selectorPart.substring(1);
+                                found = htmlClasses.has(className);
+                            }
+                            // Check if it's an ID selector
+                            else if (selectorPart.startsWith('#')) {
+                                const idName = selectorPart.substring(1);
+                                found = htmlIds.has(idName);
+                            }
+                            // Universal selector or other complex selectors
+                            else if (selectorPart === '*') {
+                                found = true;
+                            }
+                            if (!found) {
+                                // Find the position of the selector part in the line
+                                const selectorIndex = line.indexOf(selectorPart);
+                                if (selectorIndex !== -1) {
+                                    const range = new vscode.Range(new vscode.Position(lineNumber, selectorIndex), new vscode.Position(lineNumber, selectorIndex + selectorPart.length));
+                                    const diagnostic = new vscode.Diagnostic(range, `CSS selector '${selectorPart}' does not match any element in this component`, vscode.DiagnosticSeverity.Warning);
+                                    diagnostic.source = 'pico-css';
+                                    diagnostic.code = 'unused-selector';
+                                    diagnostics.push(diagnostic);
+                                }
                             }
                         }
                     }

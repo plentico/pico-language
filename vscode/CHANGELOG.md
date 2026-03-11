@@ -2,6 +2,11 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.12] - 2026-03-11
+
+### Fixed
+- Identify descendant CSS selectors when unused
+
 ## [0.0.11] - 2026-03-08
 
 ### Fixed
