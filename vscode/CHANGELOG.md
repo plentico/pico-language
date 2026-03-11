@@ -2,6 +2,16 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.13] - 2026-03-11
+
+### Added
+- Check HTML hierarchy to ensure CSS selectors exist in the specific combination and apply warnings when mismatched
+
+### Fixed
+- Highlight deepest non-matching selector instead of highlighting ancestor element
+- Apply highlight to deepest unused selector even when duplicate elements are present (e.g. span span)
+- Fix compound selector issues (e.g. span.myclass or .class1.class2)
+
 ## [0.0.12] - 2026-03-11
 
 ### Fixed

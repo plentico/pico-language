@@ -662,7 +662,8 @@ function parseHTMLTree(htmlContent: string): HTMLElement[] {
 }
 
 /**
- * Check if a simple selector (tag, .class, or #id) matches an element
+ * Check if a selector part matches an element
+ * Handles compound selectors like ".class1.class2" or "tag.class"
  */
 function elementMatchesSelector(element: HTMLElement, selectorPart: string): boolean {
     // Universal selector
@@ -670,18 +671,52 @@ function elementMatchesSelector(element: HTMLElement, selectorPart: string): boo
         return true;
     }
     
-    // Class selector
-    if (selectorPart.startsWith('.')) {
-        return element.classes.includes(selectorPart.substring(1));
+    // Handle compound selectors by splitting on class/id boundaries
+    // e.g., "span.myclass" -> ["span", ".myclass"], ".myclass1.myclass2" -> [".myclass1", ".myclass2"]
+    const parts: string[] = [];
+    let current = '';
+    
+    for (let i = 0; i < selectorPart.length; i++) {
+        const char = selectorPart[i];
+        if (char === '.' || char === '#') {
+            if (current) {
+                parts.push(current);
+            }
+            current = char;
+        } else {
+            current += char;
+        }
+    }
+    if (current) {
+        parts.push(current);
     }
     
-    // ID selector
-    if (selectorPart.startsWith('#')) {
-        return element.id === selectorPart.substring(1);
+    // If no parts were found, treat as tag selector
+    if (parts.length === 0) {
+        return element.tag === selectorPart.toLowerCase();
     }
     
-    // Tag selector
-    return element.tag === selectorPart.toLowerCase();
+    // Check each part
+    for (const part of parts) {
+        if (part.startsWith('.')) {
+            // Class selector
+            if (!element.classes.includes(part.substring(1))) {
+                return false;
+            }
+        } else if (part.startsWith('#')) {
+            // ID selector
+            if (element.id !== part.substring(1)) {
+                return false;
+            }
+        } else {
+            // Tag selector
+            if (element.tag !== part.toLowerCase()) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
 }
 
 /**
@@ -834,11 +869,21 @@ function registerCSSDiagnostics(context: vscode.ExtensionContext) {
                             if (selectorPart === '*') {
                                 found = allElements.length > 0;
                             } else if (selectorPart.startsWith('.')) {
-                                found = htmlClasses.has(selectorPart.substring(1));
+                                // For compound class selectors like ".myclass.otherclass", check if any element matches
+                                if (selectorPart.includes('.', 1)) {
+                                    found = allElements.some(el => elementMatchesSelector(el, selectorPart));
+                                } else {
+                                    found = htmlClasses.has(selectorPart.substring(1));
+                                }
                             } else if (selectorPart.startsWith('#')) {
                                 found = htmlIds.has(selectorPart.substring(1));
                             } else {
-                                found = htmlTags.has(selectorPart.toLowerCase());
+                                // For compound selectors like "span.myclass", check if any element matches
+                                if (selectorPart.includes('.') || selectorPart.includes('#')) {
+                                    found = allElements.some(el => elementMatchesSelector(el, selectorPart));
+                                } else {
+                                    found = htmlTags.has(selectorPart.toLowerCase());
+                                }
                             }
                             
                             if (!found) {
@@ -911,11 +956,22 @@ function registerCSSDiagnostics(context: vscode.ExtensionContext) {
             
             let exists = false;
             if (part.startsWith('.')) {
-                exists = allElements.some(el => el.classes.includes(part.substring(1)));
+                // For compound selectors like ".myclass1.myclass2", use elementMatchesSelector
+                // For simple class selectors, check if any element has the class
+                if (part.substring(1).includes('.') || part.substring(1).includes('#')) {
+                    exists = allElements.some(el => elementMatchesSelector(el, part));
+                } else {
+                    exists = allElements.some(el => el.classes.includes(part.substring(1)));
+                }
             } else if (part.startsWith('#')) {
                 exists = allElements.some(el => el.id === part.substring(1));
             } else {
-                exists = allElements.some(el => el.tag === part.toLowerCase());
+                // For compound selectors like "span.myclass", use elementMatchesSelector
+                if (part.includes('.') || part.includes('#')) {
+                    exists = allElements.some(el => elementMatchesSelector(el, part));
+                } else {
+                    exists = allElements.some(el => el.tag === part.toLowerCase());
+                }
             }
             
             if (!exists) {
