@@ -964,7 +964,12 @@ function registerCSSDiagnostics(context: vscode.ExtensionContext) {
                     exists = allElements.some(el => el.classes.includes(part.substring(1)));
                 }
             } else if (part.startsWith('#')) {
-                exists = allElements.some(el => el.id === part.substring(1));
+                // For compound selectors like "#myid.myclass", use elementMatchesSelector
+                if (part.substring(1).includes('.') || part.substring(1).includes('#')) {
+                    exists = allElements.some(el => elementMatchesSelector(el, part));
+                } else {
+                    exists = allElements.some(el => el.id === part.substring(1));
+                }
             } else {
                 // For compound selectors like "span.myclass", use elementMatchesSelector
                 if (part.includes('.') || part.includes('#')) {
