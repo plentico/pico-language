@@ -489,6 +489,90 @@ async function configureLanguageFeatures() {
     }
 }
 /**
+ * Parse HTML content and build a DOM tree
+ */
+function parseHTMLTree(htmlContent) {
+    const root = [];
+    const stack = [];
+    // Remove Pico control flow syntax to simplify parsing
+    const cleanedContent = htmlContent
+        .replace(/\{[/#]?\w+[^}]*\}/g, '')
+        .replace(/\{[^}]+\}/g, '');
+    // Match opening tags, closing tags, and void elements
+    const tagRegex = /<(\/?)([a-z][a-z0-9]*)\b([^>]*)>/gi;
+    let match;
+    const voidElements = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+        'link', 'meta', 'param', 'source', 'track', 'wbr']);
+    while ((match = tagRegex.exec(cleanedContent)) !== null) {
+        const isClosing = match[1] === '/';
+        const tagName = match[2].toLowerCase();
+        const attributes = match[3];
+        if (isClosing) {
+            // Find matching opening tag and close it
+            const index = stack.findIndex(el => el.tag === tagName);
+            if (index !== -1) {
+                stack.splice(index);
+            }
+        }
+        else {
+            // Extract classes and id from attributes
+            const classMatch = attributes.match(/class\s*=\s*["']([^"']*)["']/i);
+            const idMatch = attributes.match(/id\s*=\s*["']([^"']*)["']/i);
+            const element = {
+                tag: tagName,
+                classes: classMatch ? classMatch[1].split(/\s+/).filter(c => c) : [],
+                id: idMatch ? idMatch[1] : null,
+                children: []
+            };
+            // Add to parent's children or root
+            if (stack.length > 0) {
+                stack[stack.length - 1].children.push(element);
+            }
+            else {
+                root.push(element);
+            }
+            // Push to stack if not a void element
+            if (!voidElements.has(tagName) && !attributes.endsWith('/')) {
+                stack.push(element);
+            }
+        }
+    }
+    return root;
+}
+/**
+ * Check if a simple selector (tag, .class, or #id) matches an element
+ */
+function elementMatchesSelector(element, selectorPart) {
+    // Universal selector
+    if (selectorPart === '*') {
+        return true;
+    }
+    // Class selector
+    if (selectorPart.startsWith('.')) {
+        return element.classes.includes(selectorPart.substring(1));
+    }
+    // ID selector
+    if (selectorPart.startsWith('#')) {
+        return element.id === selectorPart.substring(1);
+    }
+    // Tag selector
+    return element.tag === selectorPart.toLowerCase();
+}
+/**
+ * Get all elements in the tree (flat list)
+ */
+function getAllElements(elements) {
+    const result = [];
+    function traverse(els) {
+        for (const el of els) {
+            result.push(el);
+            traverse(el.children);
+        }
+    }
+    traverse(elements);
+    return result;
+}
+/**
  * Register CSS diagnostics to warn about unused selectors
  */
 function registerCSSDiagnostics(context) {
@@ -537,6 +621,8 @@ function registerCSSDiagnostics(context) {
                 htmlContent += line + '\n';
             }
         }
+        // Parse HTML into a tree structure
+        const htmlTree = parseHTMLTree(htmlContent);
         // Extract CSS content and line numbers
         const cssBlocks = [];
         let styleStart = -1;
@@ -557,29 +643,16 @@ function registerCSSDiagnostics(context) {
                 }
             }
         }
-        // Extract all HTML tags from the content
+        // Extract all HTML tags, classes, and IDs from the content
         const htmlTags = new Set();
-        const tagRegex = /<([a-z][a-z0-9]*)\b[^>]*>/gi;
-        let match;
-        while ((match = tagRegex.exec(htmlContent)) !== null) {
-            htmlTags.add(match[1].toLowerCase());
-        }
-        // Extract all class names from HTML
         const htmlClasses = new Set();
-        const classRegex = /class\s*=\s*["']([^"']+)["']/gi;
-        while ((match = classRegex.exec(htmlContent)) !== null) {
-            const classes = match[1].split(/\s+/);
-            classes.forEach(cls => {
-                if (cls)
-                    htmlClasses.add(cls);
-            });
-        }
-        // Extract all IDs from HTML
         const htmlIds = new Set();
-        const idRegex = /id\s*=\s*["']([^"']+)["']/gi;
-        while ((match = idRegex.exec(htmlContent)) !== null) {
-            if (match[1])
-                htmlIds.add(match[1]);
+        const allElements = getAllElements(htmlTree);
+        for (const el of allElements) {
+            htmlTags.add(el.tag);
+            el.classes.forEach(c => htmlClasses.add(c));
+            if (el.id)
+                htmlIds.add(el.id);
         }
         // Analyze each CSS block
         for (const block of cssBlocks) {
@@ -594,46 +667,41 @@ function registerCSSDiagnostics(context) {
                     // Split by comma for multiple selectors
                     const selectors = fullSelector.split(',').map(s => s.trim());
                     for (const selector of selectors) {
-                        // Skip pseudo-classes, pseudo-elements, and complex selectors for now
+                        // Skip pseudo-classes, pseudo-elements, and attribute selectors for now
                         if (selector.includes(':') || selector.includes('[')) {
                             continue;
                         }
-                        // Split selector by combinators (space, >, +, ~) to get all parts
-                        const selectorParts = selector.split(/[\s>+~]/).map(s => s.trim()).filter(s => s.length > 0);
+                        // Split selector by combinators (space, >, +, ~)
+                        // For now, we focus on descendant selectors (space)
+                        const selectorParts = selector.split(/\s+/).map(s => s.trim()).filter(s => s.length > 0);
                         if (selectorParts.length === 0) {
                             continue;
                         }
-                        // Check each part of the selector
-                        for (const selectorPart of selectorParts) {
+                        // For simple single-part selectors, check if they exist anywhere
+                        if (selectorParts.length === 1) {
+                            const selectorPart = selectorParts[0];
                             let found = false;
-                            // Check if it's a tag selector
-                            if (/^[a-z][a-z0-9]*$/i.test(selectorPart)) {
+                            if (selectorPart === '*') {
+                                found = allElements.length > 0;
+                            }
+                            else if (selectorPart.startsWith('.')) {
+                                found = htmlClasses.has(selectorPart.substring(1));
+                            }
+                            else if (selectorPart.startsWith('#')) {
+                                found = htmlIds.has(selectorPart.substring(1));
+                            }
+                            else {
                                 found = htmlTags.has(selectorPart.toLowerCase());
                             }
-                            // Check if it's a class selector
-                            else if (selectorPart.startsWith('.')) {
-                                const className = selectorPart.substring(1);
-                                found = htmlClasses.has(className);
-                            }
-                            // Check if it's an ID selector
-                            else if (selectorPart.startsWith('#')) {
-                                const idName = selectorPart.substring(1);
-                                found = htmlIds.has(idName);
-                            }
-                            // Universal selector or other complex selectors
-                            else if (selectorPart === '*') {
-                                found = true;
-                            }
                             if (!found) {
-                                // Find the position of the selector part in the line
-                                const selectorIndex = line.indexOf(selectorPart);
-                                if (selectorIndex !== -1) {
-                                    const range = new vscode.Range(new vscode.Position(lineNumber, selectorIndex), new vscode.Position(lineNumber, selectorIndex + selectorPart.length));
-                                    const diagnostic = new vscode.Diagnostic(range, `CSS selector '${selectorPart}' does not match any element in this component`, vscode.DiagnosticSeverity.Warning);
-                                    diagnostic.source = 'pico-css';
-                                    diagnostic.code = 'unused-selector';
-                                    diagnostics.push(diagnostic);
-                                }
+                                createDiagnostic(diagnostics, line, lineNumber, selectorPart, `CSS selector '${selectorPart}' does not match any element in this component`);
+                            }
+                        }
+                        else {
+                            // For multi-part selectors, check if the structure exists
+                            const unmatchedPart = findUnmatchedPart(htmlTree, selectorParts);
+                            if (unmatchedPart) {
+                                createDiagnostic(diagnostics, line, lineNumber, unmatchedPart.part, `CSS selector '${unmatchedPart.part}' does not match any ${unmatchedPart.type} in this component's structure`);
                             }
                         }
                     }
@@ -641,6 +709,171 @@ function registerCSSDiagnostics(context) {
             }
         }
         diagnosticCollection.set(document.uri, diagnostics);
+    }
+    /**
+     * Create a diagnostic for an unmatched selector part
+     */
+    function createDiagnostic(diagnostics, line, lineNumber, selectorPart, message) {
+        const selectorIndex = line.indexOf(selectorPart);
+        if (selectorIndex !== -1) {
+            const range = new vscode.Range(new vscode.Position(lineNumber, selectorIndex), new vscode.Position(lineNumber, selectorIndex + selectorPart.length));
+            const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Warning);
+            diagnostic.source = 'pico-css';
+            diagnostic.code = 'unused-selector';
+            diagnostics.push(diagnostic);
+        }
+    }
+    /**
+     * Find which part of a selector chain doesn't match the HTML structure
+     * Returns the unmatched part or null if all parts match
+     */
+    function findUnmatchedPart(htmlTree, selectorParts) {
+        if (selectorParts.length === 0)
+            return null;
+        // Get all elements
+        const allElements = getAllElements(htmlTree);
+        // Check if each part exists individually first
+        for (const part of selectorParts) {
+            if (part === '*')
+                continue;
+            let exists = false;
+            if (part.startsWith('.')) {
+                exists = allElements.some(el => el.classes.includes(part.substring(1)));
+            }
+            else if (part.startsWith('#')) {
+                exists = allElements.some(el => el.id === part.substring(1));
+            }
+            else {
+                exists = allElements.some(el => el.tag === part.toLowerCase());
+            }
+            if (!exists) {
+                return { part, type: 'element' };
+            }
+        }
+        // Now check if the hierarchical structure exists
+        // Find elements matching the last part and check if they have proper ancestors
+        const lastPart = selectorParts[selectorParts.length - 1];
+        const candidates = allElements.filter(el => elementMatchesSelector(el, lastPart));
+        if (candidates.length === 0) {
+            return { part: lastPart, type: 'element' };
+        }
+        // Build parent-child relationships
+        const parentMap = buildParentMap(htmlTree);
+        // For each candidate, check if it has the required ancestor chain
+        for (const candidate of candidates) {
+            if (hasMatchingAncestors(candidate, selectorParts.slice(0, -1), parentMap)) {
+                return null; // Found a match
+            }
+        }
+        // No complete match found - find which part of the chain is missing
+        // Start from the beginning of the chain
+        return findMissingAncestorChain(selectorParts, candidates, parentMap, allElements);
+    }
+    /**
+     * Build a map of element to its parent
+     */
+    function buildParentMap(elements) {
+        const map = new Map();
+        function traverse(els, parent) {
+            for (const el of els) {
+                map.set(el, parent);
+                traverse(el.children, el);
+            }
+        }
+        traverse(elements, null);
+        return map;
+    }
+    /**
+     * Check if an element has all required ancestors in order
+     */
+    function hasMatchingAncestors(element, ancestorParts, parentMap) {
+        let current = element;
+        // Go through ancestors in reverse order (closest to farthest)
+        for (let i = ancestorParts.length - 1; i >= 0; i--) {
+            const part = ancestorParts[i];
+            // Move up the tree until we find a match
+            while (current) {
+                current = parentMap.get(current) || null;
+                if (current && elementMatchesSelector(current, part)) {
+                    break;
+                }
+            }
+            if (!current) {
+                return false;
+            }
+        }
+        return true;
+    }
+    /**
+     * Find which part of the ancestor chain is missing
+     */
+    function findMissingAncestorChain(selectorParts, candidates, parentMap, allElements) {
+        // Check each position in the chain
+        // selectorParts[0] is the first (outermost) part, selectorParts[n-1] is the target
+        const ancestorParts = selectorParts.slice(0, -1);
+        for (let chainIndex = ancestorParts.length - 1; chainIndex >= 0; chainIndex--) {
+            const part = ancestorParts[chainIndex];
+            const isFirstInChain = chainIndex === ancestorParts.length - 1;
+            // Find if any element matching this part has proper descendants
+            const matchingElements = allElements.filter(el => elementMatchesSelector(el, part));
+            if (matchingElements.length === 0) {
+                return { part, type: 'ancestor' };
+            }
+            if (isFirstInChain) {
+                // This is the direct ancestor of the target
+                // Check if any matching element has a child that matches the target
+                const targetPart = selectorParts[selectorParts.length - 1];
+                let hasValidChild = false;
+                for (const el of matchingElements) {
+                    if (el.children.some(child => elementMatchesSelector(child, targetPart))) {
+                        hasValidChild = true;
+                        break;
+                    }
+                }
+                if (!hasValidChild) {
+                    return { part, type: 'ancestor' };
+                }
+            }
+            else {
+                // This is a higher-level ancestor
+                // Check if any matching element has a descendant chain that works
+                const nextPart = ancestorParts[chainIndex - 1];
+                let hasValidDescendant = false;
+                for (const el of matchingElements) {
+                    if (hasDescendantMatching(el, nextPart)) {
+                        hasValidDescendant = true;
+                        break;
+                    }
+                }
+                if (!hasValidDescendant) {
+                    return { part, type: 'ancestor' };
+                }
+            }
+        }
+        // If we get here, check the first part
+        const firstPart = selectorParts[0];
+        const firstMatching = allElements.filter(el => elementMatchesSelector(el, firstPart));
+        if (firstMatching.length === 0) {
+            return { part: firstPart, type: 'element' };
+        }
+        return { part: firstPart, type: 'ancestor' };
+    }
+    /**
+     * Check if an element has a descendant matching the selector part
+     */
+    function hasDescendantMatching(element, selectorPart) {
+        function traverse(els) {
+            for (const el of els) {
+                if (elementMatchesSelector(el, selectorPart)) {
+                    return true;
+                }
+                if (traverse(el.children)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return traverse(element.children);
     }
     // Update diagnostics on document change
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(e => {
