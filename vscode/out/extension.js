@@ -831,7 +831,9 @@ function registerCSSDiagnostics(context) {
                     }
                 }
                 if (!hasValidChild) {
-                    return { part, type: 'ancestor' };
+                    // Highlight the target (child) instead of the ancestor - 
+                    // the child doesn't exist in this context
+                    return { part: targetPart, type: 'element' };
                 }
             }
             else {
@@ -846,7 +848,8 @@ function registerCSSDiagnostics(context) {
                     }
                 }
                 if (!hasValidDescendant) {
-                    return { part, type: 'ancestor' };
+                    // Highlight the descendant that doesn't exist in this context
+                    return { part: nextPart, type: 'element' };
                 }
             }
         }
