@@ -830,6 +830,24 @@ function registerCSSDiagnostics(context: vscode.ExtensionContext) {
             if (el.id) htmlIds.add(el.id);
         }
 
+        // Extract class names from Pico modifiers like {| class("", "collapsed other-class")}
+        // These classes are dynamically added and should not be flagged as unused
+        const modifierClassMatches = htmlContent.matchAll(/\|\s*class\s*\(([^)]*)\)/g);
+        for (const match of modifierClassMatches) {
+            const args = match[1];
+            // Extract quoted strings from the arguments
+            const stringMatches = args.matchAll(/["']([^"']*)["']/g);
+            for (const stringMatch of stringMatches) {
+                const classValue = stringMatch[1];
+                // Split by whitespace to handle multiple classes in a single string
+                classValue.split(/\s+/).forEach(c => {
+                    if (c.trim()) {
+                        htmlClasses.add(c.trim());
+                    }
+                });
+            }
+        }
+
         // Analyze each CSS block
         for (const block of cssBlocks) {
             const cssLines = block.content.split('\n');

@@ -2,6 +2,11 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.15] - 2026-03-24
+
+### Added
+- Syntax recognition for CSS classes that are potentially being added via If Statement [Modifiers](https://github.com/plentico/pico/blob/master/docs/MODIFIERS.md) (stops warnings that classes are unused).
+
 ## [0.0.14] - 2026-03-11
 
 ### Fixed
