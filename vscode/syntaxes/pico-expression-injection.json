@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Pico Expression Injection",
+  "scopeName": "source.pico.injection",
+  "injectionSelector": "L:string.quoted.double.html, L:string.quoted.single.html",
+  "patterns": [
+    {
+      "include": "#pico-expression-in-string"
+    }
+  ],
+  "repository": {
+    "pico-expression-in-string": {
+      "name": "meta.embedded.expression.pico",
+      "begin": "\\{(?!/|if|else|for)",
+      "end": "\\}",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.expression.begin.pico" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.expression.end.pico" }
+      },
+      "contentName": "meta.embedded.block.javascript",
+      "patterns": [
+        { "include": "source.js" }
+      ]
+    }
+  }
+}

@@ -2,6 +2,11 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.16] - 2026-03-25
+
+### Added
+- Syntax highlighting for expressions inside quoted HTML attribute values (e.g., `type="{typeof value === 'number' ? 'number' : 'text'}"`)
+
 ## [0.0.15] - 2026-03-24
 
 ### Added
