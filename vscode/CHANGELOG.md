@@ -2,6 +2,13 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.17] - 2026-03-25
+
+### Fixed
+- Fix syntax highlighting for additional loop variations:
+  - Object key iterations: `{for let item in items}`
+  - Array destructuring: `{for let [key, value] of rootFieldEntries}`
+
 ## [0.0.16] - 2026-03-25
 
 ### Added
