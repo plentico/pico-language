@@ -2,6 +2,16 @@
 
 All notable changes to the "Pico Templates by Plentico" extension will be documented in this file.
 
+## [0.0.18] - 2026-03-27
+
+### Added
+- Check for dynamic classes `<div id="plenti-cms" class="cms-menu {showMenu ? 'menu-visible' : ''}">` before warning CSS selector is unused. The following should all be recognized:
+  - `.menu-visible`
+  - `div.menu-visible`
+  - `#plenti-cms.menu-visible`
+  - `.cms-menu.menu-visible`
+  - `div#plenti-cms.cms-menu.menu-visible`
+
 ## [0.0.17] - 2026-03-25
 
 ### Fixed

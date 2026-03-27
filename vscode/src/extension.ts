@@ -848,6 +848,26 @@ function registerCSSDiagnostics(context: vscode.ExtensionContext) {
             }
         }
 
+        // Extract class names from dynamic Pico expressions like class="{showMenu ? 'menu-visible' : ''}"
+        // Find all class attributes that contain curly brace expressions
+        const dynamicClassRegex = /class\s*=\s*["']([^"']*\{[^}]*\}[^"']*)["']/g;
+        let dynamicMatch;
+        while ((dynamicMatch = dynamicClassRegex.exec(htmlContent)) !== null) {
+            const classAttrValue = dynamicMatch[1];
+            // Extract all quoted strings from within the expression
+            const quotedStrings = classAttrValue.matchAll(/['"]([^'"]+)['"]/g);
+            for (const quotedMatch of quotedStrings) {
+                const classValue = quotedMatch[1];
+                // Split by whitespace to handle multiple classes in a single string
+                classValue.split(/\s+/).forEach(c => {
+                    const trimmed = c.trim();
+                    if (trimmed) {
+                        htmlClasses.add(trimmed);
+                    }
+                });
+            }
+        }
+
         // Analyze each CSS block
         for (const block of cssBlocks) {
             const cssLines = block.content.split('\n');
@@ -890,15 +910,35 @@ function registerCSSDiagnostics(context: vscode.ExtensionContext) {
                                 // For compound class selectors like ".myclass.otherclass", check if any element matches
                                 if (selectorPart.includes('.', 1)) {
                                     found = allElements.some(el => elementMatchesSelector(el, selectorPart));
+                                    // If not found, check if parts exist separately (one might be dynamic)
+                                    if (!found) {
+                                        found = checkCompoundSelectorParts(selectorPart, allElements, htmlClasses, htmlIds);
+                                    }
                                 } else {
                                     found = htmlClasses.has(selectorPart.substring(1));
                                 }
                             } else if (selectorPart.startsWith('#')) {
-                                found = htmlIds.has(selectorPart.substring(1));
-                            } else {
-                                // For compound selectors like "span.myclass", check if any element matches
-                                if (selectorPart.includes('.') || selectorPart.includes('#')) {
+                                // For compound selectors starting with # like "#id.class"
+                                if (selectorPart.includes('.', 1)) {
+                                    // Check if element matches OR check parts separately for dynamic classes
                                     found = allElements.some(el => elementMatchesSelector(el, selectorPart));
+                                    if (!found) {
+                                        found = checkCompoundSelectorParts(selectorPart, allElements, htmlClasses, htmlIds);
+                                    }
+                                } else {
+                                    found = htmlIds.has(selectorPart.substring(1));
+                                }
+                            } else {
+                                // For compound selectors like "span.myclass", ".class1.class2", check if parts exist
+                                if (selectorPart.includes('.')) {
+                                    // Check if element matches OR check parts separately for dynamic classes
+                                    found = allElements.some(el => elementMatchesSelector(el, selectorPart));
+                                    
+                                    // If not found, check if the parts could exist separately
+                                    // This handles cases like tag.dynamic-class or .static.dynamic where one is dynamic
+                                    if (!found) {
+                                        found = checkCompoundSelectorParts(selectorPart, allElements, htmlClasses, htmlIds);
+                                    }
                                 } else {
                                     found = htmlTags.has(selectorPart.toLowerCase());
                                 }
@@ -922,6 +962,82 @@ function registerCSSDiagnostics(context: vscode.ExtensionContext) {
         }
 
         diagnosticCollection.set(document.uri, diagnostics);
+    }
+
+    /**
+     * Check if a compound selector's parts exist separately
+     * Handles cases like #plenti_cms.menu-visible where menu-visible is dynamically added
+     */
+    function checkCompoundSelectorParts(
+        selectorPart: string,
+        allElements: HTMLElement[],
+        htmlClasses: Set<string>,
+        htmlIds: Set<string>
+    ): boolean {
+        // Parse the compound selector into parts
+        const parts: string[] = [];
+        let current = '';
+        
+        for (let i = 0; i < selectorPart.length; i++) {
+            const char = selectorPart[i];
+            if ((char === '.' || char === '#') && current) {
+                parts.push(current);
+                current = char;
+            } else {
+                current += char;
+            }
+        }
+        if (current) {
+            parts.push(current);
+        }
+        
+        // Check if all parts exist (elements, IDs, or classes)
+        let hasTag = false;
+        let hasId = false;
+        const classesToCheck: string[] = [];
+        
+        for (const part of parts) {
+            if (part.startsWith('.')) {
+                classesToCheck.push(part.substring(1));
+            } else if (part.startsWith('#')) {
+                const idName = part.substring(1);
+                if (htmlIds.has(idName)) {
+                    hasId = true;
+                } else {
+                    return false; // ID doesn't exist
+                }
+            } else {
+                // Tag name
+                if (allElements.some(el => el.tag === part.toLowerCase())) {
+                    hasTag = true;
+                } else {
+                    return false; // Tag doesn't exist
+                }
+            }
+        }
+        
+        // Check if all classes exist (either in elements or in dynamic classes set)
+        for (const className of classesToCheck) {
+            if (!htmlClasses.has(className)) {
+                return false;
+            }
+        }
+        
+        // For selectors with ID or tag + classes: verify base element exists
+        if (hasId || hasTag) {
+            return classesToCheck.length > 0;
+        }
+        
+        // For selectors with only classes (like .class1.class2), check if at least one element
+        // has at least one of the classes (meaning the classes can be combined on an element)
+        if (classesToCheck.length >= 2) {
+            // Check if any element has at least one of the static classes
+            return allElements.some(el => 
+                classesToCheck.some(className => el.classes.includes(className))
+            );
+        }
+        
+        return false;
     }
 
     /**
